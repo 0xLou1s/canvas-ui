@@ -119,3 +119,5 @@ export function Magnify({
 }
 
 export type { MagnifyInstance, MagnifyOptions };
+
+export default Magnify;

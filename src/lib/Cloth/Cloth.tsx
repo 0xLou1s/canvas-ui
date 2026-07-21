@@ -114,3 +114,5 @@ export function Cloth({ children, className, style, ...options }: ClothProps) {
 }
 
 export type { ClothInstance, ClothOptions };
+
+export default Cloth;

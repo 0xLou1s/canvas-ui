@@ -114,3 +114,5 @@ export function Glass({ children, className, style, ...options }: GlassProps) {
 }
 
 export type { GlassInstance, GlassOptions };
+
+export default Glass;

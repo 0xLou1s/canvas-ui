@@ -54,3 +54,5 @@ export function DitheredObject({
 }
 
 export type { DitheredObjectInstance, DitheredObjectOptions };
+
+export default DitheredObject;

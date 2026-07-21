@@ -119,3 +119,5 @@ export function Clouds({
 }
 
 export type { CloudsInstance, CloudsOptions };
+
+export default Clouds;

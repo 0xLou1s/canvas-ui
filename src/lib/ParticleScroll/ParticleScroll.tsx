@@ -119,3 +119,5 @@ export function ParticleScroll({
 }
 
 export type { ParticleScrollInstance, ParticleScrollOptions };
+
+export default ParticleScroll;

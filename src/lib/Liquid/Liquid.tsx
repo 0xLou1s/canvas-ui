@@ -119,3 +119,5 @@ export function Liquid({
 }
 
 export type { LiquidInstance, LiquidOptions };
+
+export default Liquid;

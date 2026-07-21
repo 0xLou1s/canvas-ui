@@ -114,3 +114,5 @@ export function Laser({ children, className, style, ...options }: LaserProps) {
 }
 
 export type { LaserInstance, LaserOptions };
+
+export default Laser;

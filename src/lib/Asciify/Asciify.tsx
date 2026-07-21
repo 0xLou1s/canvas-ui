@@ -120,3 +120,5 @@ export function Asciify({
 }
 
 export type { AsciifyCharset, AsciifyInstance, AsciifyOptions };
+
+export default Asciify;

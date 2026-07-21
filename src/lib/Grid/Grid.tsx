@@ -114,3 +114,5 @@ export function Grid({ children, className, style, ...options }: GridProps) {
 }
 
 export type { GridInstance, GridOptions };
+
+export default Grid;

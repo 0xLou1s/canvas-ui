@@ -54,3 +54,5 @@ export function ParticleObject({
 }
 
 export type { ParticleObjectInstance, ParticleObjectOptions };
+
+export default ParticleObject;

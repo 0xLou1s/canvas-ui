@@ -119,3 +119,5 @@ export function RetroDither({
 }
 
 export type { RetroDitherInstance, RetroDitherOptions };
+
+export default RetroDither;

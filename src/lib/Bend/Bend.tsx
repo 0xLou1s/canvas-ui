@@ -114,3 +114,5 @@ export function Bend({ children, className, style, ...options }: BendProps) {
 }
 
 export type { BendInstance, BendOptions };
+
+export default Bend;

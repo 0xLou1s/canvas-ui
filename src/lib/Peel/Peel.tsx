@@ -144,3 +144,5 @@ export function Peel({
 }
 
 export type { PeelInstance, PeelOptions };
+
+export default Peel;

@@ -119,3 +119,5 @@ export function ParticleReveal({
 }
 
 export type { ParticleRevealInstance, ParticleRevealOptions };
+
+export default ParticleReveal;

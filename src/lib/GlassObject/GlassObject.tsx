@@ -54,3 +54,5 @@ export function GlassObject({
 }
 
 export type { GlassObjectInstance, GlassObjectOptions };
+
+export default GlassObject;

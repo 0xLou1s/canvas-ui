@@ -119,3 +119,5 @@ export function Bubble({
 }
 
 export type { BubbleInstance, BubbleOptions };
+
+export default Bubble;

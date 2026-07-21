@@ -119,3 +119,5 @@ export function Shatter({
 }
 
 export type { ShatterInstance, ShatterOptions };
+
+export default Shatter;

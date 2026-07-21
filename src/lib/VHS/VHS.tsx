@@ -114,3 +114,5 @@ export function VHS({ children, className, style, ...options }: VHSProps) {
 }
 
 export type { VHSInstance, VHSOptions };
+
+export default VHS;

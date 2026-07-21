@@ -114,3 +114,5 @@ export function Blaze({ children, className, style, ...options }: BlazeProps) {
 }
 
 export type { BlazeInstance, BlazeOptions };
+
+export default Blaze;

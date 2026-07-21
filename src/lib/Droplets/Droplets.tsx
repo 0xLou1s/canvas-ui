@@ -119,3 +119,5 @@ export function Droplets({
 }
 
 export type { DropletsInstance, DropletsOptions };
+
+export default Droplets;
