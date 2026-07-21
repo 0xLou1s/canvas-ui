@@ -34,16 +34,11 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    url: SITE_URL,
     siteName: "Canvas UI",
-    title: "Canvas UI",
-    description: DESCRIPTION,
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Canvas UI" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Canvas UI",
-    description: DESCRIPTION,
     images: ["/og.png"],
   },
   icons: {
