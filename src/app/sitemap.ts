@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-static";
+
 const SITE_URL = "https://canvasui.dev";
 
 const ROUTES: { path: string; priority: number }[] = [
