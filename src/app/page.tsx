@@ -1,43 +1,58 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Agents } from "@/components/landing/agents";
+import { Cta } from "@/components/landing/cta";
+import { Faq } from "@/components/landing/faq";
+import { Frameworks } from "@/components/landing/frameworks";
+import { Gallery } from "@/components/landing/gallery";
+import { Hero } from "@/components/landing/hero";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Navbar } from "@/components/landing/navbar";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  name: "Canvas UI",
+  description:
+    "An open source library of creative, framework-agnostic components drawn on canvas.",
+  url: "https://canvasui.dev",
+  codeRepository: "https://github.com/DavidHDev/canvas-ui",
+  programmingLanguage: "TypeScript",
+  author: {
+    "@type": "Person",
+    name: "David Haz",
+    url: "https://github.com/DavidHDev",
+  },
+};
 
 export default function Home() {
   return (
-    <div className="dark flex flex-1 flex-col items-center justify-center bg-background px-6 py-24 text-foreground">
-      <main className="flex w-full max-w-2xl flex-col items-center gap-8 text-center">
-        <Image
-          src="/logo-icon.svg"
-          alt="Canvas UI icon"
-          width={64}
-          height={59}
-          priority
-        />
-        <Image
-          src="/logo.svg"
-          alt="Canvas UI"
-          width={222}
-          height={46}
-          priority
-        />
-        <Badge variant="secondary">v0.1.0 &middot; Open Source</Badge>
-        <p className="max-w-md text-lg leading-8 text-muted-foreground">
-          An innovative open source creative UI library for building
-          expressive, playful interfaces.
-        </p>
-        <div className="flex items-center gap-3">
-          <Button size="lg">Get Started</Button>
-          <Button size="lg" variant="outline">
-            GitHub
-          </Button>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
+      <Navbar />
+      <main className="page-enter flex flex-1 flex-col overflow-x-clip">
+        <div className="relative mx-auto w-full max-w-6xl">
+          <div aria-hidden className="landing-rail absolute inset-y-0 left-0" />
+          <div
+            aria-hidden
+            className="landing-rail absolute inset-y-0 right-0"
+          />
+          <Hero />
+          <Gallery />
+          <HowItWorks />
+          <Frameworks />
+          <Agents />
+          <Faq />
         </div>
-        <Separator className="max-w-xs" />
-        <p className="text-sm text-muted-foreground">
-          Built with Next.js, Tailwind CSS v4 &amp; shadcn/ui.
-        </p>
+        <Cta />
       </main>
-    </div>
+    </>
   );
 }

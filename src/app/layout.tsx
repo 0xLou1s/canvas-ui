@@ -1,24 +1,62 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { FlagNotice } from "@/components/common/flag-notice";
+import { ThemeFavicon } from "@/components/common/theme-favicon";
+import { ThemeProvider } from "@/components/common/theme-provider";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const SITE_URL = "https://canvasui.dev";
+const DESCRIPTION =
+  "An open source library of creative, framework-agnostic components drawn on canvas. Fluid simulations and shader effects that run over your live interface.";
 
 export const metadata: Metadata = {
-  title: "Canvas UI",
-  description:
-    "An innovative open source creative UI library for building expressive interfaces.",
-  icons: {
-    icon: "/logo-icon.svg",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Canvas UI",
+    template: "%s | Canvas UI",
   },
+  description: DESCRIPTION,
+  applicationName: "Canvas UI",
+  authors: [{ name: "David Haz", url: "https://github.com/DavidHDev" }],
+  creator: "David Haz",
+  keywords: [
+    "canvas",
+    "webgl",
+    "html-in-canvas",
+    "creative ui",
+    "shader effects",
+    "react",
+    "vue",
+    "svelte",
+    "shadcn registry",
+  ],
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "Canvas UI",
+    title: "Canvas UI",
+    description: DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Canvas UI" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Canvas UI",
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({
@@ -29,9 +67,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-background text-foreground">
+        <ThemeProvider>
+          <ThemeFavicon />
+          {children}
+          <FlagNotice />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

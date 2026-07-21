@@ -1,0 +1,72 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function PreviewVideo({
+  src,
+  className,
+}: {
+  src: string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    video.muted = true;
+
+    let hovered = false;
+
+    void video
+      .play()
+      .then(() => {
+        if (hovered) return;
+        video.pause();
+        video.currentTime = 0;
+      })
+      .catch(() => {});
+
+    const card =
+      video.closest("a, [data-preview-card]") ?? video.parentElement ?? video;
+    const play = () => {
+      hovered = true;
+      void video.play().catch(() => {});
+    };
+    const pause = () => {
+      hovered = false;
+      video.pause();
+    };
+
+    card.addEventListener("pointerenter", play);
+    card.addEventListener("pointerleave", pause);
+    card.addEventListener("focusin", play);
+    card.addEventListener("focusout", pause);
+    return () => {
+      card.removeEventListener("pointerenter", play);
+      card.removeEventListener("pointerleave", pause);
+      card.removeEventListener("focusin", play);
+      card.removeEventListener("focusout", pause);
+    };
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      loop
+      muted
+      playsInline
+      preload="auto"
+      disablePictureInPicture
+      aria-hidden="true"
+      tabIndex={-1}
+      className={cn(
+        "invert hue-rotate-180 grayscale transition-[filter] duration-300 ease-out group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-reduce:transition-none dark:invert-0 dark:hue-rotate-0",
+        className,
+      )}
+    />
+  );
+}

@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<a href="https://canvasui.dev">
+  <img src=".github/readme.gif" alt="Canvas UI" width="100%" />
+</a>
 
-## Getting Started
+# Canvas UI
 
-First, run the development server:
+An open source library of creative, framework-agnostic components drawn on canvas. Fluid simulations, shader effects, and 3D scenes that run over your live, fully interactive interface.
+
+**[canvasui.dev](https://canvasui.dev)** · [Docs](https://canvasui.dev/docs) · [Components](https://canvasui.dev/components)
+
+## What makes it different
+
+Most of the library is built on the experimental [html-in-canvas](https://chromestatus.com/feature/5162535032373248) API, which lets WebGL effects read and redraw your live DOM. Text stays selectable, links stay clickable, and the whole page becomes a texture that fire, fluid, and glass can distort in real time.
+
+Where html-in-canvas is not supported, components degrade gracefully to pure WebGL overlays, so every visitor gets a working page.
+
+- **21 components** and counting: Liquid, Blaze, Glass, Shatter, VHS, Particle Reveal, and more
+- **Framework agnostic**: React, Vue, Svelte, and vanilla JS builds for every component
+- **Copy, do not install**: components ship as source through a shadcn-compatible registry
+- **Zero config**: each component is self-contained with sensible defaults and typed props
+- **MCP ready**: point the shadcn MCP server at the registry and let your AI assistant install components
+
+## Quick start
+
+Add a component with the shadcn CLI (run `npx shadcn@latest init` first if you have not used it before):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx shadcn@latest add https://canvasui.dev/r/liquid-react.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Swap `liquid` for any component and `react` for `vue`, `svelte`, or `vanilla`. The source lands in `components/canvasui/` in your project, yours to edit.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+See the [installation guide](https://canvasui.dev/docs/installation) for manual setup and framework notes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Browser support
 
-## Learn More
+The full html-in-canvas experience currently requires Chrome or Edge 140+ with the `#enable-experimental-web-platform-features` flag. Everywhere else, components automatically fall back to WebGL overlay rendering. Details in the [docs](https://canvasui.dev/docs).
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This repo contains the library source (`src/lib`), the documentation site (Next.js 16, Tailwind v4, deployed to Cloudflare Workers), and the registry build.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev        # builds the registry, then starts next dev
+npm run build      # production build
+npm run deploy     # build and deploy to Cloudflare
+```
 
-## Deploy on Vercel
+## Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](.github/CONTRIBUTING.md) to get started.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+[MIT + Commons Clause](LICENSE.md). Free to use in your own projects, commercial or not. The Commons Clause only restricts selling the library itself.

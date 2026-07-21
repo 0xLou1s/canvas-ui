@@ -13,6 +13,10 @@
 # testing
 /coverage
 
+# misc
+/skills
+/prompts
+
 # next.js
 /.next/
 /out/
@@ -42,9 +46,17 @@ next-env.d.ts
 
 # misc
 /skills
+/prompts
 
 # cloudflare / opennext
 .open-next/
 .wrangler/
 .dev.vars
 cloudflare-env.d.ts
+
+
+# Raw showcase video sources (compressed webm copies live in public/assets/videos)
+/assets-src/
+
+# generated shadcn registry (built by scripts/build-registry.mts on prebuild)
+/public/r/

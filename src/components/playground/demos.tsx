@@ -1,0 +1,238 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import type { ComponentType, ReactNode } from "react";
+
+export type PlaygroundDemoKind = "wrap" | "custom";
+
+export interface PlaygroundDemo {
+  slug: string;
+  name: string;
+  description: string;
+  kind: PlaygroundDemoKind;
+  Component: DemoComponent;
+}
+
+type DemoComponent = ComponentType<{ children?: ReactNode }>;
+
+function Skeleton() {
+  return (
+    <div
+      aria-hidden
+      className="fixed right-6 bottom-6 z-40 rounded-full border border-border/60 bg-background/70 px-4 py-2.5 text-[13px] font-medium text-muted-foreground backdrop-blur-xl"
+    >
+      Loading effect...
+    </div>
+  );
+}
+
+const load = (loader: () => Promise<ComponentType<never>>) =>
+  dynamic(() => loader() as Promise<DemoComponent>, {
+    ssr: false,
+    loading: () => <Skeleton />,
+  });
+
+export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
+  {
+    slug: "asciify",
+    name: "Asciify",
+    description: "An ascii lens that follows your cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/asciify-demo").then((m) => m.AsciifyDemo),
+    ),
+  },
+  {
+    slug: "bend",
+    name: "Bend",
+    description: "Folds the page over virtual edges as you scroll.",
+    kind: "wrap",
+    Component: load(() => import("@/demos/bend-demo").then((m) => m.BendDemo)),
+  },
+  {
+    slug: "blaze",
+    name: "Blaze",
+    description: "Fire, smoke, and heat rising over the page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/blaze-demo").then((m) => m.BlazeDemo),
+    ),
+  },
+  {
+    slug: "bubble",
+    name: "Bubble",
+    description: "A glassy droplet trailing the cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/bubble-demo").then((m) => m.BubbleDemo),
+    ),
+  },
+  {
+    slug: "cloth",
+    name: "Cloth",
+    description: "Hangs the page on rippling fabric.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/cloth-demo").then((m) => m.ClothDemo),
+    ),
+  },
+  {
+    slug: "clouds",
+    name: "Clouds",
+    description: "Theme-aware mist parted by cursor wind.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/clouds-demo").then((m) => m.CloudsDemo),
+    ),
+  },
+  {
+    slug: "dithered-object",
+    name: "Dithered Object",
+    description: "A 3D model rendered through a 1-bit dither.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/dithered-object-entry").then(
+        (m) => m.DitheredObjectEntry,
+      ),
+    ),
+  },
+  {
+    slug: "droplets",
+    name: "Droplets",
+    description: "Rain droplets refracting the page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/droplets-demo").then((m) => m.DropletsDemo),
+    ),
+  },
+  {
+    slug: "glass",
+    name: "Glass",
+    description: "A crystal-ball lens that zooms on targets.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/glass-demo").then((m) => m.GlassDemo),
+    ),
+  },
+  {
+    slug: "glass-object",
+    name: "Glass Object",
+    description: "Models, SVGs, and images as floating liquid glass.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/glass-object-entry").then(
+        (m) => m.GlassObjectEntry,
+      ),
+    ),
+  },
+  {
+    slug: "grid",
+    name: "Grid",
+    description: "3D tiles rippling around the cursor.",
+    kind: "wrap",
+    Component: load(() => import("@/demos/grid-demo").then((m) => m.GridDemo)),
+  },
+  {
+    slug: "laser",
+    name: "Laser",
+    description: "A beam that reveals the page on scroll.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/laser-demo").then((m) => m.LaserDemo),
+    ),
+  },
+  {
+    slug: "liquid",
+    name: "Liquid",
+    description: "A fluid simulation over the live page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/liquid-demo").then((m) => m.LiquidDemo),
+    ),
+  },
+  {
+    slug: "magnify",
+    name: "Magnify",
+    description: "A sci-fi scanner lens with click ripples.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/magnify-demo").then((m) => m.MagnifyDemo),
+    ),
+  },
+  {
+    slug: "particle-object",
+    name: "Particle Object",
+    description: "Models rebuilt as swirling particle clouds.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/particle-object-entry").then(
+        (m) => m.ParticleObjectEntry,
+      ),
+    ),
+  },
+  {
+    slug: "particle-reveal",
+    name: "Particle Reveal",
+    description: "UI revealed from fine particles by the cursor.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/particle-reveal-entry").then(
+        (m) => m.ParticleRevealEntry,
+      ),
+    ),
+  },
+  {
+    slug: "particle-scroll",
+    name: "Particle Scroll",
+    description: "The page dissolves into sand below a line.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/particle-scroll-demo").then((m) => m.ParticleScrollDemo),
+    ),
+  },
+  {
+    slug: "peel",
+    name: "Peel",
+    description: "Peels the page back from an edge in 3D.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/peel-entry").then(
+        (m) => m.PeelEntry,
+      ),
+    ),
+  },
+  {
+    slug: "retro-dither",
+    name: "Retro Dither",
+    description: "A retro dithered pass over the live page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/retro-dither-demo").then((m) => m.RetroDitherDemo),
+    ),
+  },
+  {
+    slug: "shatter",
+    name: "Shatter",
+    description: "Shatters the page into glass shards.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/shatter-demo").then((m) => m.ShatterDemo),
+    ),
+  },
+  {
+    slug: "vhs",
+    name: "VHS",
+    description: "Analog tape artifacts over the live page.",
+    kind: "wrap",
+    Component: load(() => import("@/demos/vhs-demo").then((m) => m.VHSDemo)),
+  },
+];
+
+export const DEFAULT_PLAYGROUND_SLUG = "liquid";
+
+export function getPlaygroundDemo(slug: string | null): PlaygroundDemo {
+  return (
+    PLAYGROUND_DEMOS.find((demo) => demo.slug === slug) ??
+    PLAYGROUND_DEMOS.find((demo) => demo.slug === DEFAULT_PLAYGROUND_SLUG)!
+  );
+}
