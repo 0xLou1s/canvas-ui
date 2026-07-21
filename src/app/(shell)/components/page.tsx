@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Footer } from "@/components/landing/footer";
-import { PreviewVideo } from "@/components/preview-video";
+import { PreviewVideo } from "@/components/common/preview-video";
 import { COMPONENTS } from "@/data/components";
 
 export const metadata: Metadata = {

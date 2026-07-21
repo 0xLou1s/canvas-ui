@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run registry && next dev",
-    "registry": "node scripts/build-registry.mts",
+    "registry": "node --experimental-strip-types scripts/build-registry.mts",
     "prebuild": "npm run registry",
     "build": "next build",
     "start": "next start",

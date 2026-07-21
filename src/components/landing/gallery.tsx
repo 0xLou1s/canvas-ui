@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
-import { PreviewVideo } from "@/components/preview-video";
+import { PreviewVideo } from "@/components/common/preview-video";
 import { COMPONENTS, type ComponentEntry } from "@/data/components";
 
 const MID = Math.ceil(COMPONENTS.length / 2);

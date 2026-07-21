@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 
 import { SiteLogo } from "@/components/common/site-logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
-import { PreviewVideo } from "@/components/preview-video";
+import { PreviewVideo } from "@/components/common/preview-video";
 import { PlaygroundActions } from "@/components/playground/playground-actions";
 import { PLAYGROUND_DEMOS } from "@/components/playground/demos";
 import { cn } from "@/lib/utils";

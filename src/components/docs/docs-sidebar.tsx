@@ -2,11 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "motion/react";
 import { Shapes } from "lucide-react";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 
 import { SiteLogo } from "@/components/common/site-logo";
+import { COMPONENTS, type ComponentEntry } from "@/data/components";
 import { cn } from "@/lib/utils";
+
+const PREVIEWS = new Map(COMPONENTS.map((entry) => [entry.href, entry]));
+const PREVIEW_W = 224;
+const PREVIEW_H = 168;
+const EASE = [0.23, 1, 0.32, 1] as const;
+
+const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
+
+function subscribeHover(callback: () => void) {
+  const mql = window.matchMedia(HOVER_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
 
 const sections = [
   {
@@ -46,11 +68,60 @@ const sections = [
   },
 ] as const;
 
-export function DocsNavList({ onNavigate }: { onNavigate?: () => void }) {
+export function DocsNavList({
+  onNavigate,
+  showPreviews = false,
+}: {
+  onNavigate?: () => void;
+  showPreviews?: boolean;
+}) {
   const pathname = usePathname();
+  const shouldReduceMotion = useReducedMotion();
+  const [preview, setPreview] = useState<ComponentEntry | null>(null);
+  const activeRef = useRef(false);
+  const canHover = useSyncExternalStore(
+    subscribeHover,
+    () => window.matchMedia(HOVER_QUERY).matches,
+    () => false,
+  );
+
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 350, damping: 38 });
+  const sy = useSpring(my, { stiffness: 350, damping: 38 });
+  const x = shouldReduceMotion ? mx : sx;
+  const y = shouldReduceMotion ? my : sy;
+
+  const enabled = showPreviews && canHover;
+
+  const place = (event: React.PointerEvent, jump: boolean) => {
+    const pad = 12;
+    const px = Math.min(
+      event.clientX + 20,
+      window.innerWidth - PREVIEW_W - pad,
+    );
+    const py = Math.min(
+      Math.max(event.clientY - PREVIEW_H / 2, pad),
+      window.innerHeight - PREVIEW_H - pad,
+    );
+    if (jump) {
+      mx.jump(px);
+      my.jump(py);
+      sx.jump(px);
+      sy.jump(py);
+    } else {
+      mx.set(px);
+      my.set(py);
+    }
+  };
+
+  const clearPreview = () => {
+    activeRef.current = false;
+    setPreview(null);
+  };
 
   return (
-    <>
+    <div onPointerLeave={enabled ? clearPreview : undefined}>
       {sections.map((section) => (
         <div key={section.title} className="mt-4 first:mt-0">
           <p className="px-2 pb-1.5 text-[12px] font-medium text-muted-foreground/70">
@@ -59,12 +130,29 @@ export function DocsNavList({ onNavigate }: { onNavigate?: () => void }) {
           <ul className="flex flex-col gap-0.5">
             {section.items.map((item) => {
               const active = pathname === item.href;
+              const entry = enabled ? PREVIEWS.get(item.href) : undefined;
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     onClick={onNavigate}
+                    onPointerEnter={
+                      enabled
+                        ? (event) => {
+                            if (!entry) {
+                              clearPreview();
+                              return;
+                            }
+                            place(event, !activeRef.current);
+                            activeRef.current = true;
+                            setPreview(entry);
+                          }
+                        : undefined
+                    }
+                    onPointerMove={
+                      entry ? (event) => place(event, false) : undefined
+                    }
                     className={cn(
                       "block rounded-lg px-2 py-1.5 text-sm transition-colors duration-150",
                       active
@@ -80,7 +168,44 @@ export function DocsNavList({ onNavigate }: { onNavigate?: () => void }) {
           </ul>
         </div>
       ))}
-    </>
+      {enabled &&
+        createPortal(
+          <AnimatePresence>
+            {preview && (
+              <motion.div
+                key="docs-nav-preview"
+                initial={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.96 }
+                }
+                animate={{ opacity: 1, scale: 1 }}
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.97 }
+                }
+                transition={{ duration: 0.18, ease: EASE }}
+                style={{ x, y, width: PREVIEW_W }}
+                className="pointer-events-none fixed top-0 left-0 z-50"
+              >
+                <div className="overflow-hidden rounded-xl border border-border/60 bg-background shadow-2xl shadow-black/20">
+                  <video
+                    key={preview.video}
+                    src={preview.video}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="aspect-4/3 w-full object-cover"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+    </div>
   );
 }
 
@@ -138,7 +263,7 @@ export function DocsSidebar() {
         aria-label="Docs"
         className="demo-controls-scroll docs-sidebar-scroll flex-1 overflow-y-auto pr-4 pb-5 pl-3"
       >
-        <DocsNavList />
+        <DocsNavList showPreviews />
       </nav>
 
       <PlaygroundCta />
