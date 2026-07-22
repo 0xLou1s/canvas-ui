@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { play } from "cuelume";
 import {
   Check,
   ChevronDown,
@@ -168,7 +169,7 @@ function ActionMenu({
                   key={item.id}
                   role="menuitem"
                   type="button"
-                  onClick={() => handleSelect(item)}
+                  onClick={() => { handleSelect(item); play('bloom') }}
                   className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-muted-foreground transition-colors duration-100 hover:bg-muted/60 hover:text-foreground"
                 >
                   <Icon aria-hidden className="size-4 shrink-0" />

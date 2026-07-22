@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 import { ApiReference, type ApiProp } from "@/components/docs/api-reference";
 import { CodeTabs, type CodeVariant } from "@/components/docs/code-tabs";
@@ -6,6 +8,7 @@ import { CopyMenu } from "@/components/docs/copy-menu";
 import { DependencyTabs } from "@/components/docs/dependency-tabs";
 import { InstallTabs } from "@/components/docs/install-tabs";
 import { getComponentDependencies, getDemoSource } from "@/lib/registry";
+import { COMPONENTS } from "@/data/components";
 
 export interface ComponentDocProps {
   title: string;
@@ -82,7 +85,12 @@ export function ComponentDoc({
       {beforeInstall}
 
       <section className="mt-8" aria-label="Installation">
-        <h2 className="text-lg font-semibold tracking-[-0.01em]">Install</h2>
+        <h2
+          id="install"
+          className="scroll-mt-24 text-lg font-semibold tracking-[-0.01em]"
+        >
+          Install
+        </h2>
         <div className="mt-3">
           <InstallTabs item={installItem} />
         </div>
@@ -93,7 +101,10 @@ export function ComponentDoc({
 
       {dependencies.length > 0 || devDependencies.length > 0 ? (
         <section className="mt-8" aria-label="Dependencies">
-          <h2 className="text-lg font-semibold tracking-[-0.01em]">
+          <h2
+            id="dependencies"
+            className="scroll-mt-24 text-lg font-semibold tracking-[-0.01em]"
+          >
             Dependencies
           </h2>
           <p className="mt-2 text-[13px] text-muted-foreground">
@@ -110,7 +121,12 @@ export function ComponentDoc({
       ) : null}
 
       <section className="mt-8" aria-label="Code">
-        <h2 className="text-lg font-semibold tracking-[-0.01em]">Code</h2>
+        <h2
+          id="code"
+          className="scroll-mt-24 text-lg font-semibold tracking-[-0.01em]"
+        >
+          Code
+        </h2>
         <div className="mt-3">
           <CodeTabs variants={variants} />
         </div>
@@ -118,7 +134,10 @@ export function ComponentDoc({
 
       {apiReference && apiReference.length > 0 ? (
         <section className="mt-8" aria-label="API reference">
-          <h2 className="text-lg font-semibold tracking-[-0.01em]">
+          <h2
+            id="api-reference"
+            className="scroll-mt-24 text-lg font-semibold tracking-[-0.01em]"
+          >
             API reference
           </h2>
           <div className="mt-3">
@@ -126,6 +145,61 @@ export function ComponentDoc({
           </div>
         </section>
       ) : null}
+
+      <ComponentPager slug={installItem} />
     </article>
+  );
+}
+
+function ComponentPager({ slug }: { slug: string }) {
+  const index = COMPONENTS.findIndex(
+    (entry) => entry.href === `/docs/components/${slug}`,
+  );
+  if (index === -1) return null;
+  const prev = index > 0 ? COMPONENTS[index - 1] : null;
+  const next = index < COMPONENTS.length - 1 ? COMPONENTS[index + 1] : null;
+
+  return (
+    <nav
+      aria-label="Component pagination"
+      className="not-typeset mt-12 grid gap-4 sm:grid-cols-2"
+    >
+      {prev ? (
+        <Link
+          href={prev.href}
+          rel="prev"
+          className="group rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40"
+        >
+          <span className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
+            {prev.name}
+            <ChevronRight
+              aria-hidden
+              className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+            />
+          </span>
+          <span className="mt-1 block truncate text-[13px] text-muted-foreground">
+            {prev.description}
+          </span>
+        </Link>
+      ) : null}
+      {next ? (
+        <Link
+          href={next.href}
+          rel="next"
+          className="group rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40 sm:col-start-2"
+        >
+          <span className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
+            {next.name}
+            <ChevronRight
+              aria-hidden
+              className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+            />
+          </span>
+          <span className="mt-1 block truncate text-[13px] text-muted-foreground">
+            {next.description}
+          </span>
+        </Link>
+      ) : null}
+    </nav>
   );
 }

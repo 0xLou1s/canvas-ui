@@ -126,11 +126,29 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     ),
   },
   {
+    slug: "glitch",
+    name: "Glitch",
+    description: "Broadcast glitch bursts over the live page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/glitch-demo").then((m) => m.GlitchDemo),
+    ),
+  },
+  {
     slug: "grid",
     name: "Grid",
     description: "3D tiles rippling around the cursor.",
     kind: "wrap",
     Component: load(() => import("@/demos/grid-demo").then((m) => m.GridDemo)),
+  },
+  {
+    slug: "hex-float",
+    name: "Hex Float",
+    description: "The page on shiny floating hex tiles.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/hex-float-demo").then((m) => m.HexFloatDemo),
+    ),
   },
   {
     slug: "laser",
@@ -208,6 +226,15 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     kind: "wrap",
     Component: load(() =>
       import("@/demos/retro-dither-demo").then((m) => m.RetroDitherDemo),
+    ),
+  },
+  {
+    slug: "ripple",
+    name: "Ripple",
+    description: "Click to send water ripples across the page.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/ripple-demo").then((m) => m.RippleDemo),
     ),
   },
   {

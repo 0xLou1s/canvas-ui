@@ -27,6 +27,7 @@ export const MOCK_IMAGES = {
   ],
   avatar: img("photo-1581065178047-8ee15951ede6", 200),
   glassBackdrop: img("photo-1618005182384-a83a8bd57fbe", 1600),
+  hero: img("photo-1774425316479-4de6166e7408", 1740),
 } as const;
 
 function MockLink({
@@ -412,7 +413,7 @@ export function MockSite({
             heroBleed ? "" : "overflow-hidden"
           }`}
         >
-          {heroMedia ?? <MockDashboard />}
+          {heroMedia ?? <MockImage src={MOCK_IMAGES.hero} alt="Showcase" />}
         </div>
       </section>
 

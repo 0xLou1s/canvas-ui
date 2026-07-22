@@ -21,7 +21,9 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: "/docs/components/droplets", priority: 0.8 },
   { path: "/docs/components/glass", priority: 0.8 },
   { path: "/docs/components/glass-object", priority: 0.8 },
+  { path: "/docs/components/glitch", priority: 0.8 },
   { path: "/docs/components/grid", priority: 0.8 },
+  { path: "/docs/components/hex-float", priority: 0.8 },
   { path: "/docs/components/laser", priority: 0.8 },
   { path: "/docs/components/liquid", priority: 0.8 },
   { path: "/docs/components/magnify", priority: 0.8 },
@@ -30,6 +32,7 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: "/docs/components/particle-scroll", priority: 0.8 },
   { path: "/docs/components/peel", priority: 0.8 },
   { path: "/docs/components/retro-dither", priority: 0.8 },
+  { path: "/docs/components/ripple", priority: 0.8 },
   { path: "/docs/components/shatter", priority: 0.8 },
   { path: "/docs/components/vhs", priority: 0.8 },
 ];

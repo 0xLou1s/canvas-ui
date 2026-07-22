@@ -14,7 +14,7 @@ Most of the library is built on the experimental [html-in-canvas](https://chrome
 
 Where html-in-canvas is not supported, components degrade gracefully to pure WebGL overlays, so every visitor gets a working page.
 
-- **21 components** and counting: Liquid, Blaze, Glass, Shatter, VHS, Particle Reveal, and more
+- **24 components** and counting: Liquid, Blaze, Glass, Shatter, VHS, Particle Reveal, and more
 - **Framework agnostic**: React, Vue, Svelte, and vanilla JS builds for every component
 - **Copy, do not install**: components ship as source through a shadcn-compatible registry
 - **Zero config**: each component is self-contained with sensible defaults and typed props

@@ -21,7 +21,9 @@
 - [Droplets](https://canvasui.dev/docs/components/droplets): Rain droplets that run down the screen and refract live HTML
 - [Glass](https://canvasui.dev/docs/components/glass): A cursor-following glass lens that refracts live HTML and zooms in on targets like a crystal ball
 - [Glass Object](https://canvasui.dev/docs/components/glass-object): Turns any 3D model, SVG, or image into floating liquid glass with real refraction, dispersion, and frost
+- [Glitch](https://canvasui.dev/docs/components/glitch): Broadcast glitch bursts that tear live HTML into shifted slices with RGB splits, corrupted blocks, and analog noise
 - [Grid](https://canvasui.dev/docs/components/grid): 3D tiles that ripple in staggered waves around the cursor over live HTML
+- [Hex Float](https://canvasui.dev/docs/components/hex-float): Live HTML on shiny floating hex tiles with perspective tilt and a fluid-driven reading window around the cursor
 - [Laser](https://canvasui.dev/docs/components/laser): A laser beam near the bottom of the viewport that reveals live HTML from behind it on scroll
 - [Liquid](https://canvasui.dev/docs/components/liquid): A pointer-driven WebGL fluid simulation that runs over live HTML
 - [Magnify](https://canvasui.dev/docs/components/magnify): A sci-fi scanner lens that magnifies live HTML inside a HUD reticle, with click ripples that bend the page
@@ -30,6 +32,7 @@
 - [Particle Scroll](https://canvasui.dev/docs/components/particle-scroll): Dissolves live HTML below a chosen line into fine sand particles that reassemble on scroll
 - [Peel](https://canvasui.dev/docs/components/peel): Peels live HTML back from a chosen edge on hover, curling it in 3D to reveal a second layer underneath
 - [Retro Dither](https://canvasui.dev/docs/components/retro-dither): A retro dither lens that pixelates live HTML around the cursor
+- [Ripple](https://canvasui.dev/docs/components/ripple): Water ripples that spread from every click and refract live HTML like a pond surface
 - [Shatter](https://canvasui.dev/docs/components/shatter): Breaks live HTML into 3D glass shards that lift, float, and refract around the cursor, with perspective and soft shadows
 - [VHS](https://canvasui.dev/docs/components/vhs): Worn tape playback with wave, head-switching noise, chroma bleed, and grain over live HTML
 

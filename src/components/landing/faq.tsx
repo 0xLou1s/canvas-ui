@@ -16,7 +16,7 @@ const ITEMS = [
   {
     question: "Which browsers are supported?",
     answer:
-      "Components that draw live HTML on canvas rely on an experimental browser capability, available today in Chrome behind a flag. Everywhere else they degrade gracefully: your content renders as regular HTML, and effects like Blaze, Liquid, Laser, Clouds, Bubble, Droplets, Glass, Magnify, and Grid keep running as a pure WebGL overlay on top of it. WebGL-based components work in every modern browser.",
+      "Components that draw live HTML on canvas rely on an experimental browser capability, available today in Chrome behind a flag. Everywhere else they degrade gracefully: your content renders as regular HTML, and effects like Blaze, Liquid, Laser, Clouds, Bubble, Droplets, Glass, Magnify, Grid, and Ripple keep running as a pure WebGL overlay on top of it. WebGL-based components work in every modern browser.",
   },
   {
     question: "Will it slow my site down?",

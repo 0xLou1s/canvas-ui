@@ -123,10 +123,22 @@ const ENTRIES: SearchEntry[] = [
     hint: "liquid glass 3d model svg png refraction dispersion transmission three.js",
   },
   {
+    href: "/docs/components/glitch",
+    label: "Glitch",
+    section: "Components",
+    hint: "glitch burst rgb split slices corruption datamosh broadcast tear noise",
+  },
+  {
     href: "/docs/components/grid",
     label: "Grid",
     section: "Components",
     hint: "3d tiles ripple waves",
+  },
+  {
+    href: "/docs/components/hex-float",
+    label: "Hex Float",
+    section: "Components",
+    hint: "hexagon tiles shiny perspective tilt cursor lift",
   },
   {
     href: "/docs/components/laser",
@@ -175,6 +187,12 @@ const ENTRIES: SearchEntry[] = [
     label: "Retro Dither",
     section: "Components",
     hint: "pixel lens gameboy",
+  },
+  {
+    href: "/docs/components/ripple",
+    label: "Ripple",
+    section: "Components",
+    hint: "water rings waves click pond splash refraction",
   },
   {
     href: "/docs/components/shatter",

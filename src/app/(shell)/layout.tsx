@@ -14,7 +14,7 @@ export default function ShellLayout({
     <div className="flex min-h-svh flex-col">
       <DocsSidebar />
 
-      <div className="relative z-40 flex items-center justify-between pt-5 pl-5 pr-[calc(1.25rem+var(--demo-sbw,0px))] [view-transition-name:docs-mobile-header] lg:hidden">
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border/40 bg-background/70 pt-5 pb-4 pl-5 pr-[calc(1.25rem+var(--demo-sbw,0px))] backdrop-blur-xl backdrop-saturate-150 [view-transition-name:docs-mobile-header] lg:hidden">
         <Link href="/" aria-label="Canvas UI home">
           <Image
             src="/logo.svg"

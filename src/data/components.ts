@@ -78,11 +78,25 @@ export const COMPONENTS: ComponentEntry[] = [
     video: "/assets/videos/glass-object.webm",
   },
   {
+    href: "/docs/components/glitch",
+    name: "Glitch",
+    description:
+      "Broadcast glitch bursts that tear your live HTML into shifted slices with RGB splits and corrupted blocks.",
+    video: "/assets/videos/glitch.webm",
+  },
+  {
     href: "/docs/components/grid",
     name: "Grid",
     description:
       "3D tiles that ripple in staggered waves around the cursor over your live HTML.",
     video: "/assets/videos/grid.webm",
+  },
+  {
+    href: "/docs/components/hex-float",
+    name: "Hex Float",
+    description:
+      "Your live HTML on shiny floating hex tiles with perspective tilt and cursor lift.",
+    video: "/assets/videos/hex-float.webm",
   },
   {
     href: "/docs/components/laser",
@@ -139,6 +153,13 @@ export const COMPONENTS: ComponentEntry[] = [
     description:
       "A retro dither lens that pixelates your live HTML around the cursor.",
     video: "/assets/videos/retro-dither.webm",
+  },
+  {
+    href: "/docs/components/ripple",
+    name: "Ripple",
+    description:
+      "Water ripples that spread from every click and refract your live HTML like a pond surface.",
+    video: "/assets/videos/ripple.webm",
   },
   {
     href: "/docs/components/shatter",

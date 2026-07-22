@@ -206,7 +206,7 @@ void main () {
     vec2 offR = rvR.xy * (depth / max(abs(rvR.z), 0.35));
     vec2 offG = rvG.xy * (depth / max(abs(rvG.z), 0.35));
     vec2 offB = rvB.xy * (depth / max(abs(rvB.z), 0.35));
-    float lod = max(uFrost * 5.0, log2(1.0 + length(offG) * 0.12));
+    float lod = max(uFrost * 5.0, log2(1.0 + length(offG) * 0.05 / uDpr));
     vec3 refr = vec3(
       page(frag + offR, lod).r,
       page(frag + offG, lod).g,
@@ -266,12 +266,14 @@ export function createBubble(
   );
 
   let contentDirty = false;
+  let sourceDpr = 1;
   let wake = () => {};
 
   if (htmlInCanvas) {
     paintable.onpaint = () => {
       try {
         sourceCtx!.reset();
+        sourceCtx!.scale(sourceDpr, sourceDpr);
         sourceCtx!.drawElementImage!(content, 0, 0);
         contentDirty = true;
         wake();
@@ -351,12 +353,13 @@ export function createBubble(
       Math.max(0.05, content.clientWidth / Math.max(output.clientWidth, 1)),
     );
     if (htmlInCanvas) {
-      const cssWidth = Math.max(1, Math.round(source.clientWidth));
-      const cssHeight = Math.max(1, Math.round(source.clientHeight));
-      if (source.width !== cssWidth || source.height !== cssHeight) {
-        source.width = cssWidth;
-        source.height = cssHeight;
+      const sourceWidth = Math.max(1, Math.round(source.clientWidth * dpr));
+      const sourceHeight = Math.max(1, Math.round(source.clientHeight * dpr));
+      if (source.width !== sourceWidth || source.height !== sourceHeight) {
+        source.width = sourceWidth;
+        source.height = sourceHeight;
       }
+      sourceDpr = dpr;
       paintable.requestPaint!();
     }
   }

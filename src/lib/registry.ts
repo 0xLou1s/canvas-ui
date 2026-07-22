@@ -93,10 +93,25 @@ const COMPONENTS: Record<string, ComponentDef> = {
     description:
       "Peels your page back from a chosen edge as the cursor approaches, revealing a second layer underneath. The HTML stays interactive. No dependencies.",
   },
+  glitch: {
+    base: "Glitch",
+    description:
+      "Broadcast glitch bursts that tear the page into shifted slices with RGB splits, corrupted blocks, and analog noise, then settle back to a clean read. The HTML stays interactive. No dependencies.",
+  },
+  "hex-float": {
+    base: "HexFloat",
+    description:
+      "Renders the live page onto a floor of shiny beveled hex tiles that lean back in perspective, bob gently, and rise toward the cursor. The HTML stays interactive. No dependencies.",
+  },
   "retro-dither": {
     base: "RetroDither",
     description:
       "A retro dither lens that pixelates and quantizes your page around the cursor. The HTML stays interactive. No dependencies.",
+  },
+  ripple: {
+    base: "Ripple",
+    description:
+      "Water ripples that spread from every click and refract the live page like a pond surface, with dispersion and light glints on the crests. The HTML stays interactive. No dependencies.",
   },
   shatter: {
     base: "Shatter",
