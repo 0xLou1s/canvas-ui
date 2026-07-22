@@ -50,7 +50,7 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="hero-panel-enter relative mx-auto mt-16 min-h-72 w-full flex-1 overflow-hidden rounded-2xl bg-muted sm:mt-20">
+      <div className="hero-panel-enter relative mx-auto mt-16 min-h-72 w-full flex-1 overflow-hidden rounded-2xl bg-muted sm:mt-20 sm:min-h-[27rem]">
         <HeroReveal
           background={
             // eslint-disable-next-line @next/next/no-img-element
