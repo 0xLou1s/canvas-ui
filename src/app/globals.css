@@ -592,6 +592,27 @@
   }
 }
 
+/* Synthetic overlay scrollbar for demos whose real scroller lives inside a
+   source canvas (html-in-canvas mode), where the native scrollbar is only
+   part of the captured texture and gets warped or clipped by the effect. */
+.demo-overlay-thumb {
+  position: fixed;
+  top: 0;
+  right: 3px;
+  z-index: 40;
+  width: 6px;
+  border-radius: 999px;
+  background-color: color-mix(
+    in oklab,
+    var(--muted-foreground) 50%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+
 .docs-sidebar-scroll {
   --sb-alpha: 0;
 }

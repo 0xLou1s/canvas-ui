@@ -65,6 +65,76 @@ export function useDemoScrollbarGutter() {
     };
   }, [contentEl]);
 
+  // In html-in-canvas mode the demo scrolls an element hidden inside the
+  // source canvas, so its native scrollbar is only visible as part of the
+  // captured texture — warped or clipped away by most effects. Draw a real
+  // overlay scrollbar outside the canvas instead, synced to that scroller.
+  useEffect(() => {
+    const el = contentEl;
+    if (!el) return;
+    // Find the scroller via the document rather than through contentEl so
+    // the mutations below don't touch a state-derived value.
+    const canvas = [
+      ...document.querySelectorAll<HTMLCanvasElement>("canvas[layoutsubtree]"),
+    ].find((node) => node.contains(el));
+    const scroller = canvas?.firstElementChild;
+    if (!(scroller instanceof HTMLElement)) return;
+
+    const prevScrollbarWidth = scroller.style.scrollbarWidth;
+    scroller.style.scrollbarWidth = "none";
+
+    const thumb = document.createElement("div");
+    thumb.setAttribute("aria-hidden", "true");
+    thumb.className = "demo-overlay-thumb";
+    document.body.appendChild(thumb);
+
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const layout = () => {
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      if (max <= 1) {
+        thumb.style.opacity = "0";
+        return false;
+      }
+      const trackTop = 8;
+      const trackHeight = window.innerHeight - 16;
+      const height = Math.max(
+        36,
+        (scroller.clientHeight / scroller.scrollHeight) * trackHeight,
+      );
+      const top =
+        trackTop + (scroller.scrollTop / max) * (trackHeight - height);
+      thumb.style.height = `${height}px`;
+      thumb.style.transform = `translateY(${top}px)`;
+      return true;
+    };
+
+    const show = () => {
+      if (!layout()) return;
+      thumb.style.opacity = "1";
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        thumb.style.opacity = "0";
+      }, 1000);
+    };
+
+    show();
+    scroller.addEventListener("scroll", show, { passive: true });
+    window.addEventListener("resize", show);
+    const observer = new ResizeObserver(() => layout());
+    observer.observe(el);
+    observer.observe(scroller);
+
+    return () => {
+      scroller.removeEventListener("scroll", show);
+      window.removeEventListener("resize", show);
+      observer.disconnect();
+      if (hideTimer) clearTimeout(hideTimer);
+      thumb.remove();
+      scroller.style.scrollbarWidth = prevScrollbarWidth;
+    };
+  }, [contentEl]);
+
   return setContentEl;
 }
 
