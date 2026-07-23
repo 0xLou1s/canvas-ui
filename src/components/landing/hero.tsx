@@ -6,7 +6,7 @@ import { HeroReveal } from "@/components/landing/hero-reveal";
 import { CopyButton } from "@/components/docs/copy-button";
 
 const INSTALL_COMMAND =
-  "npx shadcn@latest add https://canvasui.dev/r/particle-reveal-react.json";
+  "npx shadcn@latest add @canvas-ui/particle-reveal-react.json";
 
 export function Hero() {
   preload("/assets/fallback-hero-poster.jpg", {

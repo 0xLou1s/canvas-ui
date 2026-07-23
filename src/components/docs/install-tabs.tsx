@@ -27,7 +27,7 @@ export function buildInstallCommand(
   frameworkId: string,
 ) {
   const manager = MANAGERS.find((m) => m.id === managerId) ?? MANAGERS[0];
-  return `${manager.run} shadcn@latest add https://canvasui.dev/r/${item}-${frameworkId}.json`;
+  return `${manager.run} shadcn@latest add @canvas-ui/${item}-${frameworkId}.json`;
 }
 
 export function InstallTabs({ item }: { item: string }) {

@@ -6,7 +6,7 @@ import { MousePointer2 } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
 
-const TYPED = "npx shadcn@latest add @canvasui/particle-reveal-react";
+const TYPED = "npx shadcn@latest add @canvas-ui/particle-reveal-react.json";
 const PHASE_MS = 5200;
 
 const STEPS = [
@@ -68,7 +68,7 @@ function TerminalStage() {
       </div>
       <div className="hiw-line" style={{ animationDelay: "2150ms" }}>
         <span className="text-muted-foreground">✓</span> Found particle-reveal
-        in <span className="text-foreground">@canvasui</span>
+        in <span className="text-foreground">@canvas-ui</span>
       </div>
       <div className="hiw-line" style={{ animationDelay: "2600ms" }}>
         <span className="text-muted-foreground">✓</span> ParticleReveal.tsx

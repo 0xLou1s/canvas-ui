@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
 
-const ADD_COMMAND = "npx shadcn@latest add @canvasui/particle-reveal-react";
+const ADD_COMMAND =
+  "npx shadcn@latest add @canvas-ui/particle-reveal-react.json";
 
 const STAGE_AT = [0, 700, 1800, 3200, 4000];
 

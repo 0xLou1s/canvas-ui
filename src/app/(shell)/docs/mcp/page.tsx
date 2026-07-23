@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const REGISTRY_CONFIG = `{
   "registries": {
-    "@canvasui": "https://canvasui.dev/r/{name}.json"
+    "@canvas-ui": "https://canvasui.dev/r/{name}.json"
   }
 }`;
 
@@ -23,14 +23,14 @@ const CODEX_CONFIG = `[mcp_servers.shadcn]
 command = "npx"
 args = ["shadcn@latest", "mcp"]`;
 
-const ADD_COMMAND = "npx shadcn@latest add @canvasui/liquid-react";
+const ADD_COMMAND = "npx shadcn@latest add @canvas-ui/liquid-react.json";
 
 const initCommand = (client: string) =>
   `npx shadcn@latest mcp init --client ${client}`;
 
 const PROMPTS = [
-  "Show me the components in the canvasui registry",
-  "Add liquid from the canvasui registry to my hero section",
+  "Show me the components in the @canvas-ui registry",
+  "Add liquid from the @canvas-ui registry to my hero section",
 ];
 
 const CLIENTS = [
@@ -54,16 +54,16 @@ The shadcn MCP server works with any shadcn-compatible registry, including this 
 
 ## Configure the registry
 
-Add the Canvas UI registry to your components.json file:
-
-\`\`\`json
-${REGISTRY_CONFIG}
-\`\`\`
-
-This also enables namespaced installs, with or without MCP:
+Canvas UI is a trusted shadcn registry, so the @canvas-ui namespace works out of the box, with or without MCP:
 
 \`\`\`sh
 ${ADD_COMMAND}
+\`\`\`
+
+Optionally, you can pin the registry in your components.json file:
+
+\`\`\`json
+${REGISTRY_CONFIG}
 \`\`\`
 
 ## Set up your client
@@ -202,7 +202,16 @@ export default async function McpPage() {
 
         <h2>Configure the registry</h2>
         <p>
-          Add the Canvas UI registry to your <code>components.json</code> file:
+          Canvas UI is a trusted shadcn registry, so the{" "}
+          <code>@canvas-ui</code> namespace works out of the box, with or
+          without MCP:
+        </p>
+        <div className="my-6">
+          <CodeBlock source={ADD_COMMAND} />
+        </div>
+        <p>
+          Optionally, you can pin the registry in your{" "}
+          <code>components.json</code> file:
         </p>
         <div className="my-6">
           <CodeBlock
@@ -210,10 +219,6 @@ export default async function McpPage() {
             source={REGISTRY_CONFIG}
             fileName="components.json"
           />
-        </div>
-        <p>This also enables namespaced installs, with or without MCP:</p>
-        <div className="my-6">
-          <CodeBlock source={ADD_COMMAND} />
         </div>
 
         <h2>Set up your client</h2>
