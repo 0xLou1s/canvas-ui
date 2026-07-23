@@ -25,7 +25,7 @@ Where html-in-canvas is not supported, components degrade gracefully to pure Web
 Add a component with the shadcn CLI (run `npx shadcn@latest init` first if you have not used it before):
 
 ```bash
-npx shadcn@latest add @canvas-ui/liquid-react.json
+npx shadcn@latest add @canvas-ui/liquid-react
 ```
 
 Swap `liquid` for any component and `react` for `vue`, `svelte`, or `vanilla`. The source lands in `components/canvasui/` in your project, yours to edit.

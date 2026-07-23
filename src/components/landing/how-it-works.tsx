@@ -6,7 +6,7 @@ import { MousePointer2 } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
 
-const TYPED = "npx shadcn@latest add @canvas-ui/particle-reveal-react.json";
+const TYPED = "npx shadcn@latest add @canvas-ui/particle-reveal-react";
 const PHASE_MS = 5200;
 
 const STEPS = [

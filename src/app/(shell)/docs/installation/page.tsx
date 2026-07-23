@@ -101,7 +101,7 @@ Beyond that, TypeScript is recommended, since every file ships as typed source. 
 Every component has a registry entry per framework (react, vue, svelte, vanilla):
 
 \`\`\`sh
-npx shadcn@latest add @canvas-ui/liquid-react.json
+npx shadcn@latest add @canvas-ui/liquid-react
 \`\`\`
 
 The CLI drops the file into components/canvasui/ in your project. If you have not used shadcn before, run \`npx shadcn@latest init\` first.

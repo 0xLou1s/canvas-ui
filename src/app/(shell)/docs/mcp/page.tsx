@@ -23,7 +23,7 @@ const CODEX_CONFIG = `[mcp_servers.shadcn]
 command = "npx"
 args = ["shadcn@latest", "mcp"]`;
 
-const ADD_COMMAND = "npx shadcn@latest add @canvas-ui/liquid-react.json";
+const ADD_COMMAND = "npx shadcn@latest add @canvas-ui/liquid-react";
 
 const initCommand = (client: string) =>
   `npx shadcn@latest mcp init --client ${client}`;

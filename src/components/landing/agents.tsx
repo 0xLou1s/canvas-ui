@@ -12,7 +12,7 @@ import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
 
 const ADD_COMMAND =
-  "npx shadcn@latest add @canvas-ui/particle-reveal-react.json";
+  "npx shadcn@latest add @canvas-ui/particle-reveal-react";
 
 const STAGE_AT = [0, 700, 1800, 3200, 4000];
 

@@ -39,7 +39,7 @@
 ## Registry
 
 - [Registry index](https://canvasui.dev/r/registry.json): shadcn-compatible registry index
-- Install with: npx shadcn@latest add @canvas-ui/liquid-react.json (also liquid-vue, liquid-svelte, liquid-vanilla)
+- Install with: npx shadcn@latest add @canvas-ui/liquid-react (also liquid-vue, liquid-svelte, liquid-vanilla)
 - @canvas-ui is a trusted shadcn registry, so no components.json configuration is needed
 
 ## Notes
