@@ -266,14 +266,12 @@ export function createBubble(
   );
 
   let contentDirty = false;
-  let sourceDpr = 1;
   let wake = () => {};
 
   if (htmlInCanvas) {
     paintable.onpaint = () => {
       try {
         sourceCtx!.reset();
-        sourceCtx!.scale(sourceDpr, sourceDpr);
         sourceCtx!.drawElementImage!(content, 0, 0);
         contentDirty = true;
         wake();
@@ -359,7 +357,6 @@ export function createBubble(
         source.width = sourceWidth;
         source.height = sourceHeight;
       }
-      sourceDpr = dpr;
       paintable.requestPaint!();
     }
   }
