@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/common/theme-provider";
 
 const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
-  "A free, open source component library of creative canvas and WebGL effects for React, Vue, Svelte, and vanilla JS. Shader effects and fluid simulations that run over your live, interactive interface.";
+  "An open source component library of creative html-in-canvas and WebGL effects for React, Vue, Svelte, and vanilla JS. Creative effects running over live HTML.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
