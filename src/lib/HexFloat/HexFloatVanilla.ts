@@ -629,6 +629,53 @@ export function supportsHtmlInCanvas(): boolean {
   );
 }
 
+// CSS :hover follows the browser's flat hit-testing, which no longer matches
+// the tilted render, so the wrong element would light up on hover. Rewrite
+// same-origin :hover rules so that, inside remapped content, hover is driven
+// by a data attribute we set on the element that is visually under the
+// pointer, while native :hover keeps working everywhere else. :is()/:where()
+// keep the specificity of each rewritten selector identical to the original.
+const HOVER_ATTR = "data-canvasui-hover";
+const CONTENT_ATTR = "data-canvasui-content";
+const HOVER_REWRITE = `:is([${HOVER_ATTR}], :hover:where(:not([${CONTENT_ATTR}], [${CONTENT_ATTR}] *)))`;
+
+function patchHoverRules() {
+  if (typeof document === "undefined") return;
+  if (document.documentElement.dataset.canvasuiHoverRules === "") return;
+  document.documentElement.dataset.canvasuiHoverRules = "";
+  const walk = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        if (rule.selectorText.includes(":hover")) {
+          try {
+            rule.selectorText = rule.selectorText.replace(
+              /:hover\b/g,
+              HOVER_REWRITE,
+            );
+          } catch {}
+        }
+        if (rule.cssRules.length) walk(rule.cssRules);
+      } else if ("cssRules" in rule) {
+        try {
+          walk((rule as CSSGroupingRule).cssRules);
+        } catch {}
+      }
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      walk(sheet.cssRules);
+    } catch {
+      // Cross-origin stylesheet: not readable, skip.
+    }
+  }
+  // The remapped cursor is driven from the visually hovered element; children
+  // must not override it from the browser's flat hit-testing.
+  const style = document.createElement("style");
+  style.textContent = `[${CONTENT_ATTR}], [${CONTENT_ATTR}] * { cursor: var(--canvasui-cursor, auto) !important; }`;
+  document.head.appendChild(style);
+}
+
 export function createHexFloat(
   elements: HexFloatElements,
   options: HexFloatOptions = {},
@@ -1347,18 +1394,25 @@ export function createHexFloat(
     pointerClientY = event.clientY;
     pointerOn = true;
     simActiveUntil = performance.now() + 4000;
+    updateHover(event.clientX, event.clientY);
     start();
   }
 
   function onPointerLeave() {
     pointerOn = false;
     hasPrevFlow = false;
+    setHoverTarget(null);
     start();
   }
 
   content.addEventListener("pointermove", onPointerMove, { passive: true });
   content.addEventListener("pointerleave", onPointerLeave, { passive: true });
-  content.addEventListener("scroll", start, { passive: true });
+
+  function onScroll() {
+    if (pointerOn) updateHover(pointerClientX, pointerClientY);
+    start();
+  }
+  content.addEventListener("scroll", onScroll, { passive: true });
 
   // The tilted camera shifts where elements appear, so raw clicks land on the
   // wrong DOM node. Invert the camera mapping (screen ray onto the page plane)
@@ -1404,6 +1458,50 @@ export function createHexFloat(
   }
 
   let forwarding = false;
+
+  // Drive hover + cursor from the visually-under-pointer element.
+  let hoverChain: Element[] = [];
+  let hoverTarget: Element | null = null;
+
+  if (htmlInCanvas) {
+    patchHoverRules();
+    content.setAttribute(CONTENT_ATTR, "");
+  }
+
+  function setHoverTarget(target: Element | null) {
+    if (target === hoverTarget) return;
+    hoverTarget = target;
+    const next: Element[] = [];
+    for (let el: Element | null = target; el; el = el.parentElement) {
+      next.push(el);
+      if (el === content) break;
+    }
+    for (const el of hoverChain) {
+      if (!next.includes(el)) el.removeAttribute(HOVER_ATTR);
+    }
+    for (const el of next) el.setAttribute(HOVER_ATTR, "");
+    hoverChain = next;
+    if (target) {
+      content.style.setProperty(
+        "--canvasui-cursor",
+        getComputedStyle(target).cursor,
+      );
+    } else {
+      content.style.removeProperty("--canvasui-cursor");
+    }
+  }
+
+  function updateHover(clientX: number, clientY: number) {
+    if (!htmlInCanvas) return;
+    const p = contentPoint(clientX, clientY);
+    if (!p) {
+      setHoverTarget(null);
+      return;
+    }
+    const rect = content.getBoundingClientRect();
+    const target = document.elementFromPoint(rect.left + p.x, rect.top + p.y);
+    setHoverTarget(target && content.contains(target) ? target : null);
+  }
 
   function onClick(event: MouseEvent) {
     if (forwarding || !htmlInCanvas) return;
@@ -1557,9 +1655,11 @@ export function createHexFloat(
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);
+      setHoverTarget(null);
+      content.removeAttribute(CONTENT_ATTR);
       content.removeEventListener("pointermove", onPointerMove);
       content.removeEventListener("pointerleave", onPointerLeave);
-      content.removeEventListener("scroll", start);
+      content.removeEventListener("scroll", onScroll);
       content.removeEventListener("click", onClick, true);
       content.removeEventListener("mousedown", onMouseDown, true);
       window.removeEventListener("mousemove", onSelMove, true);

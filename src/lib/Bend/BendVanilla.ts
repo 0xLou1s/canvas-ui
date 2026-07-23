@@ -224,6 +224,53 @@ export function supportsHtmlInCanvas(): boolean {
   );
 }
 
+// CSS :hover follows the browser's flat hit-testing, which no longer matches
+// the bent render, so the wrong element would light up on hover. Rewrite
+// same-origin :hover rules so that, inside remapped content, hover is driven
+// by a data attribute we set on the element that is visually under the
+// pointer, while native :hover keeps working everywhere else. :is()/:where()
+// keep the specificity of each rewritten selector identical to the original.
+const HOVER_ATTR = "data-canvasui-hover";
+const CONTENT_ATTR = "data-canvasui-content";
+const HOVER_REWRITE = `:is([${HOVER_ATTR}], :hover:where(:not([${CONTENT_ATTR}], [${CONTENT_ATTR}] *)))`;
+
+function patchHoverRules() {
+  if (typeof document === "undefined") return;
+  if (document.documentElement.dataset.canvasuiHoverRules === "") return;
+  document.documentElement.dataset.canvasuiHoverRules = "";
+  const walk = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        if (rule.selectorText.includes(":hover")) {
+          try {
+            rule.selectorText = rule.selectorText.replace(
+              /:hover\b/g,
+              HOVER_REWRITE,
+            );
+          } catch {}
+        }
+        if (rule.cssRules.length) walk(rule.cssRules);
+      } else if ("cssRules" in rule) {
+        try {
+          walk((rule as CSSGroupingRule).cssRules);
+        } catch {}
+      }
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      walk(sheet.cssRules);
+    } catch {
+      // Cross-origin stylesheet: not readable, skip.
+    }
+  }
+  // The remapped cursor is driven from the visually hovered element; children
+  // must not override it from the browser's flat hit-testing.
+  const style = document.createElement("style");
+  style.textContent = `[${CONTENT_ATTR}], [${CONTENT_ATTR}] * { cursor: var(--canvasui-cursor, auto) !important; }`;
+  document.head.appendChild(style);
+}
+
 export function createBend(
   elements: BendElements,
   options: BendOptions = {},
@@ -523,6 +570,7 @@ export function createBend(
   function onScroll() {
     syncScroll();
     if (htmlInCanvas) paintable.requestPaint!();
+    if (hoverOn) updateHover(hoverClientX, hoverClientY);
     start();
   }
   content.addEventListener("scroll", onScroll, { passive: true });
@@ -545,6 +593,10 @@ export function createBend(
 
   function onPointerMove(event: PointerEvent) {
     if (!event.isPrimary) return;
+    hoverClientX = event.clientX;
+    hoverClientY = event.clientY;
+    hoverOn = true;
+    updateHover(event.clientX, event.clientY);
     if (config.tilt > 0 && !reducedMotion) {
       const rect = output.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
@@ -560,6 +612,8 @@ export function createBend(
   content.addEventListener("pointermove", onPointerMove, { passive: true });
 
   function onPointerLeave() {
+    hoverOn = false;
+    setHoverTarget(null);
     tiltXTarget = 0;
     tiltYTarget = 0;
     start();
@@ -677,6 +731,57 @@ export function createBend(
 
   let forwarding = false;
 
+  // Drive hover + cursor from the visually-under-pointer element.
+  let hoverChain: Element[] = [];
+  let hoverTarget: Element | null = null;
+  let hoverClientX = 0;
+  let hoverClientY = 0;
+  let hoverOn = false;
+
+  if (htmlInCanvas) {
+    patchHoverRules();
+    content.setAttribute(CONTENT_ATTR, "");
+  }
+
+  function setHoverTarget(target: Element | null) {
+    if (target === hoverTarget) return;
+    hoverTarget = target;
+    const next: Element[] = [];
+    for (let el: Element | null = target; el; el = el.parentElement) {
+      next.push(el);
+      if (el === content) break;
+    }
+    for (const el of hoverChain) {
+      if (!next.includes(el)) el.removeAttribute(HOVER_ATTR);
+    }
+    for (const el of next) el.setAttribute(HOVER_ATTR, "");
+    hoverChain = next;
+    if (target) {
+      content.style.setProperty(
+        "--canvasui-cursor",
+        getComputedStyle(target).cursor,
+      );
+    } else {
+      content.style.removeProperty("--canvasui-cursor");
+    }
+  }
+
+  function updateHover(clientX: number, clientY: number) {
+    if (!htmlInCanvas) return;
+    const rect = output.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const mapped = mapPoint(clientX - rect.left, clientY - rect.top);
+    if (mapped.alpha < 0.5) {
+      setHoverTarget(null);
+      return;
+    }
+    const target = document.elementFromPoint(
+      rect.left + mapped.x,
+      rect.top + mapped.y,
+    );
+    setHoverTarget(target && content.contains(target) ? target : null);
+  }
+
   function onClick(event: MouseEvent) {
     if (forwarding || !htmlInCanvas || event.button !== 0) return;
     const rect = output.getBoundingClientRect();
@@ -729,6 +834,74 @@ export function createBend(
   }
   content.addEventListener("click", onClick, true);
 
+  // Text selection needs the same treatment: the native drag-selection would
+  // anchor at the raw pointer position, on the wrong row under the bend.
+  // Drive the selection manually from the remapped caret positions instead.
+  function caretAt(x: number, y: number): { node: Node; offset: number } | null {
+    const doc = document as Document & {
+      caretPositionFromPoint?: (
+        x: number,
+        y: number,
+      ) => { offsetNode: Node; offset: number } | null;
+      caretRangeFromPoint?: (x: number, y: number) => Range | null;
+    };
+    if (typeof doc.caretPositionFromPoint === "function") {
+      const c = doc.caretPositionFromPoint(x, y);
+      return c ? { node: c.offsetNode, offset: c.offset } : null;
+    }
+    const r = doc.caretRangeFromPoint?.(x, y);
+    return r ? { node: r.startContainer, offset: r.startOffset } : null;
+  }
+
+  function remapped(event: MouseEvent): { x: number; y: number } | null {
+    const rect = output.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    const mapped = mapPoint(event.clientX - rect.left, event.clientY - rect.top);
+    if (mapped.alpha < 0.5) return null;
+    const tx = rect.left + mapped.x;
+    const ty = rect.top + mapped.y;
+    if (Math.hypot(tx - event.clientX, ty - event.clientY) < 1.5) return null;
+    return { x: tx, y: ty };
+  }
+
+  let selecting = false;
+
+  function onMouseDown(event: MouseEvent) {
+    if (forwarding || !htmlInCanvas || event.button !== 0) return;
+    const m = remapped(event);
+    if (!m) return;
+    event.preventDefault();
+    const caret = caretAt(m.x, m.y);
+    if (!caret || !content.contains(caret.node)) return;
+    const sel = window.getSelection();
+    if (!sel) return;
+    sel.removeAllRanges();
+    sel.collapse(caret.node, caret.offset);
+    selecting = true;
+  }
+
+  function onSelMove(event: MouseEvent) {
+    if (!selecting) return;
+    if (!(event.buttons & 1)) {
+      selecting = false;
+      return;
+    }
+    const m = remapped(event);
+    const caret = m ? caretAt(m.x, m.y) : null;
+    const sel = window.getSelection();
+    if (caret && sel && sel.anchorNode && content.contains(caret.node)) {
+      sel.extend(caret.node, caret.offset);
+    }
+  }
+
+  function onSelEnd() {
+    selecting = false;
+  }
+
+  content.addEventListener("mousedown", onMouseDown, true);
+  window.addEventListener("mousemove", onSelMove, true);
+  window.addEventListener("mouseup", onSelEnd, true);
+
   function onMotionChange() {
     reducedMotion = motionQuery.matches;
     start();
@@ -763,11 +936,16 @@ export function createBend(
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);
+      setHoverTarget(null);
+      content.removeAttribute(CONTENT_ATTR);
       content.removeEventListener("scroll", onScroll);
       content.removeEventListener("wheel", onWheel);
       content.removeEventListener("pointermove", onPointerMove);
       content.removeEventListener("pointerleave", onPointerLeave);
       content.removeEventListener("click", onClick, true);
+      content.removeEventListener("mousedown", onMouseDown, true);
+      window.removeEventListener("mousemove", onSelMove, true);
+      window.removeEventListener("mouseup", onSelEnd, true);
       observer.disconnect();
       intersection.disconnect();
       motionQuery.removeEventListener("change", onMotionChange);
