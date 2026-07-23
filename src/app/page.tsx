@@ -18,7 +18,7 @@ const JSON_LD = {
   "@type": "SoftwareSourceCode",
   name: "Canvas UI",
   description:
-    "An open source library of creative, framework-agnostic components drawn on canvas.",
+    "A free, open source component library of creative canvas and WebGL effects for React, Vue, Svelte, and vanilla JS.",
   url: "https://canvasui.dev",
   codeRepository: "https://github.com/DavidHDev/canvas-ui",
   programmingLanguage: "TypeScript",

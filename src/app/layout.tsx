@@ -9,12 +9,12 @@ import { ThemeProvider } from "@/components/common/theme-provider";
 
 const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
-  "An open source library of creative, framework-agnostic components drawn on canvas. Fluid simulations and shader effects that run over your live interface.";
+  "A free, open source component library of creative canvas and WebGL effects for React, Vue, Svelte, and vanilla JS. Shader effects and fluid simulations that run over your live, interactive interface.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Canvas UI – Creative canvas & WebGL components for the web",
+    default: "Canvas UI: Creative Canvas and WebGL Component Library",
     template: "%s | Canvas UI",
   },
   description: DESCRIPTION,
@@ -22,11 +22,19 @@ export const metadata: Metadata = {
   authors: [{ name: "David Haz", url: "https://github.com/DavidHDev" }],
   creator: "David Haz",
   keywords: [
+    "component library",
+    "react component library",
+    "vue component library",
+    "svelte component library",
+    "webgl component library",
+    "canvas components",
+    "ui components",
     "canvas",
     "webgl",
     "html-in-canvas",
     "creative ui",
     "shader effects",
+    "web animations",
     "react",
     "vue",
     "svelte",
