@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export const REPO = "DavidHDev/canvas-ui";
+import { REPO } from "@/lib/github";
 
 const CACHE_KEY = "canvasui:stars";
 const CACHE_TTL = 24 * 60 * 60 * 1000;
