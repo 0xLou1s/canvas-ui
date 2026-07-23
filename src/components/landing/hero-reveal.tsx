@@ -76,10 +76,12 @@ export function HeroReveal({
       <div className="absolute inset-0">
         <video
           src="/assets/fallback-hero.mp4"
+          poster="/assets/fallback-hero-poster.jpg"
           autoPlay
           muted
           loop
           playsInline
+          preload="metadata"
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover"
         />

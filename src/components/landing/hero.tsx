@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { preload } from "react-dom";
 import { ArrowRight } from "lucide-react";
 
 import { HeroReveal } from "@/components/landing/hero-reveal";
@@ -8,6 +9,10 @@ const INSTALL_COMMAND =
   "npx shadcn@latest add https://canvasui.dev/r/particle-reveal-react.json";
 
 export function Hero() {
+  preload("/assets/fallback-hero-poster.jpg", {
+    as: "image",
+    fetchPriority: "high",
+  });
   return (
     <section className="flex min-h-svh w-full flex-col px-5 pt-28 pb-2.5 sm:px-8 sm:pt-36">
       <div className="mx-auto flex w-full max-w-2xl flex-col items-start px-2.5 text-left sm:items-center sm:text-center">

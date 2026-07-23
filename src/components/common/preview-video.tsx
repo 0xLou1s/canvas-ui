@@ -20,20 +20,38 @@ export function PreviewVideo({
     video.muted = true;
 
     let hovered = false;
+    let primed = false;
 
-    void video
-      .play()
-      .then(() => {
-        if (hovered) return;
-        video.pause();
-        video.currentTime = 0;
-      })
-      .catch(() => {});
+    const prime = () => {
+      if (primed) return;
+      primed = true;
+      void video
+        .play()
+        .then(() => {
+          if (hovered) return;
+          video.pause();
+          video.currentTime = 0;
+        })
+        .catch(() => {});
+    };
+
+    // Defer fetching video data until the card is near the viewport.
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          prime();
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    io.observe(video);
 
     const card =
       video.closest("a, [data-preview-card]") ?? video.parentElement ?? video;
     const play = () => {
       hovered = true;
+      primed = true;
       void video.play().catch(() => {});
     };
     const pause = () => {
@@ -46,6 +64,7 @@ export function PreviewVideo({
     card.addEventListener("focusin", play);
     card.addEventListener("focusout", pause);
     return () => {
+      io.disconnect();
       card.removeEventListener("pointerenter", play);
       card.removeEventListener("pointerleave", pause);
       card.removeEventListener("focusin", play);
@@ -60,7 +79,7 @@ export function PreviewVideo({
       loop
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       disablePictureInPicture
       aria-hidden="true"
       tabIndex={-1}

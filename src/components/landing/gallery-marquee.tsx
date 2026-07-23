@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { PreviewVideo } from "@/components/common/preview-video";
 import { COMPONENTS, type ComponentEntry } from "@/data/components";
-
-const emptySubscribe = () => () => {};
 
 const MID = Math.ceil(COMPONENTS.length / 2);
 const ROWS: {
@@ -56,14 +54,29 @@ function GalleryCard({
  * height before hydration to avoid layout shift.
  */
 export function GalleryMarquee() {
-  const ready = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+
+  // Mount the cards only when the gallery approaches the viewport, keeping
+  // them out of the hydration work and the initial network burst.
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setReady(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(host);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <>
+    <div ref={hostRef} className="flex flex-col gap-4">
       {ROWS.map((row, rowIndex) => (
         <div key={rowIndex} className="marquee">
           {ready ? (
@@ -102,6 +115,6 @@ export function GalleryMarquee() {
           )}
         </div>
       ))}
-    </>
+    </div>
   );
 }
