@@ -12,12 +12,12 @@ export interface LinkCard {
 
 export function LinkCards({ items }: { items: LinkCard[] }) {
   return (
-    <div className="not-typeset grid gap-4 sm:grid-cols-2">
+    <div className="not-typeset grid grid-cols-1 gap-4 sm:grid-cols-2">
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="group rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40"
+          className="group min-w-0 rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40"
         >
           <span className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
             {item.title}

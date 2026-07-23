@@ -162,13 +162,13 @@ function ComponentPager({ slug }: { slug: string }) {
   return (
     <nav
       aria-label="Component pagination"
-      className="not-typeset mt-12 grid gap-4 sm:grid-cols-2"
+      className="not-typeset mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2"
     >
       {prev ? (
         <Link
           href={prev.href}
           rel="prev"
-          className="group rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40"
+          className="group min-w-0 rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40"
         >
           <span className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
             {prev.name}
@@ -186,7 +186,7 @@ function ComponentPager({ slug }: { slug: string }) {
         <Link
           href={next.href}
           rel="next"
-          className="group rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40 sm:col-start-2"
+          className="group min-w-0 rounded-xl border border-border/60 p-4 transition-colors duration-150 hover:bg-muted/40 sm:col-start-2"
         >
           <span className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
             {next.name}
