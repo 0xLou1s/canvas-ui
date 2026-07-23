@@ -217,6 +217,11 @@
   animation: marquee-scroll var(--marquee-duration, 60s) linear infinite;
 }
 
+/* Hold the scroll until the client mounts the seamless-loop duplicate */
+.marquee-track:not([data-ready]) {
+  animation-play-state: paused;
+}
+
 .marquee-track[data-direction="reverse"] {
   animation-direction: reverse;
 }

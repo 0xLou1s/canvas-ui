@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { isLightVideo } from "@/data/components";
 
 export function PreviewVideo({
   src,
@@ -64,7 +65,10 @@ export function PreviewVideo({
       aria-hidden="true"
       tabIndex={-1}
       className={cn(
-        "invert hue-rotate-180 grayscale transition-[filter] duration-300 ease-out group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-reduce:transition-none dark:invert-0 dark:hue-rotate-0",
+        "grayscale transition-[filter] duration-300 ease-out group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-reduce:transition-none",
+        isLightVideo(src)
+          ? "dark:invert dark:hue-rotate-180"
+          : "invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0",
         className,
       )}
     />

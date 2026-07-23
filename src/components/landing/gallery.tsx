@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { Reveal } from "@/components/landing/reveal";
+import { MarqueeTrack } from "@/components/landing/marquee-track";
 import { Stitches } from "@/components/landing/stitches";
 import { PreviewVideo } from "@/components/common/preview-video";
 import { COMPONENTS, type ComponentEntry } from "@/data/components";
@@ -16,17 +17,10 @@ const ROWS: {
   { items: COMPONENTS.slice(MID), direction: "reverse", duration: "96s" },
 ];
 
-function GalleryCard({
-  component,
-  focusable = true,
-}: {
-  component: ComponentEntry;
-  focusable?: boolean;
-}) {
+function GalleryCard({ component }: { component: ComponentEntry }) {
   return (
     <Link
       href={component.href}
-      tabIndex={focusable ? undefined : -1}
       className="group block w-64 shrink-0 rounded-2xl border border-border/60 bg-muted/30 p-2 transition-colors duration-150 hover:bg-muted/50 sm:w-72"
     >
       <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border/70 bg-background/60">
@@ -82,30 +76,13 @@ export function Gallery() {
       <Reveal delay={80} className="mt-12 flex flex-col gap-4">
         {ROWS.map((row, rowIndex) => (
           <div key={rowIndex} className="marquee">
-            <div
-              className="marquee-track"
-              data-direction={row.direction}
-              style={
-                { "--marquee-duration": row.duration } as React.CSSProperties
-              }
-            >
-              {[0, 1].map((copy) => (
-                <ul
-                  key={copy}
-                  aria-hidden={copy === 1 || undefined}
-                  className="flex gap-4 pr-4"
-                >
-                  {row.items.map((component) => (
-                    <li key={component.href}>
-                      <GalleryCard
-                        component={component}
-                        focusable={copy === 0}
-                      />
-                    </li>
-                  ))}
-                </ul>
+            <MarqueeTrack direction={row.direction} duration={row.duration}>
+              {row.items.map((component) => (
+                <li key={component.href}>
+                  <GalleryCard component={component} />
+                </li>
               ))}
-            </div>
+            </MarqueeTrack>
           </div>
         ))}
       </Reveal>

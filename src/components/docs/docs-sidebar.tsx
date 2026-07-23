@@ -14,7 +14,7 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { SiteLogo } from "@/components/common/site-logo";
-import { COMPONENTS, type ComponentEntry } from "@/data/components";
+import { COMPONENTS, isLightVideo, type ComponentEntry } from "@/data/components";
 import { cn } from "@/lib/utils";
 
 const PREVIEWS = new Map(COMPONENTS.map((entry) => [entry.href, entry]));
@@ -200,7 +200,12 @@ export function DocsNavList({
                     loop
                     muted
                     playsInline
-                    className="aspect-4/3 w-full object-cover"
+                    className={cn(
+                      "aspect-4/3 w-full object-cover",
+                      isLightVideo(preview.video)
+                        ? "dark:invert dark:hue-rotate-180"
+                        : "invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0",
+                    )}
                   />
                 </div>
               </motion.div>
