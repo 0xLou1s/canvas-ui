@@ -20,6 +20,21 @@ export function Hero() {
 }`,
   },
   {
+    id: "solid",
+    label: "Solid",
+    fileName: "hero.tsx",
+    lang: "tsx",
+    source: `import { ParticleReveal } from "@/components/canvasui/ParticleReveal";
+
+export function Hero() {
+  return (
+    <ParticleReveal radius={300}>
+      <YourContent />
+    </ParticleReveal>
+  );
+}`,
+  },
+  {
     id: "vue",
     label: "Vue",
     fileName: "Hero.vue",
@@ -88,11 +103,12 @@ export async function Frameworks() {
               id="frameworks-heading"
               className="mt-3 text-3xl font-medium tracking-tighter text-balance sm:text-4xl"
             >
-              One component, four flavors.
+              One component, five flavors.
             </h2>
             <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
-              Every effect ships as React, Vue, Svelte, and dependency-free
-              vanilla TypeScript. Same engine, same props, native to your stack.
+              Every effect ships as React, Solid, Vue, Svelte, and
+              dependency-free vanilla TypeScript. Same engine, same props,
+              native to your stack.
             </p>
           </Reveal>
           <Reveal delay={100}>

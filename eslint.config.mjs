@@ -5,6 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    files: ["src/lib/**/*.solid.tsx"],
+    rules: {
+      "@typescript-eslint/no-namespace": "off",
+      "react-hooks/refs": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     "prompts/**",

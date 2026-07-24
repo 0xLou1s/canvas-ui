@@ -32,6 +32,21 @@ export default function Page() {
 }`,
   },
   {
+    id: "solid",
+    label: "Solid",
+    fileName: "App.tsx",
+    lang: "tsx",
+    source: `import { Liquid } from "@/components/canvasui/Liquid";
+
+export default function App() {
+  return (
+    <Liquid rainbow style={{ height: "480px" }}>
+      <YourContent />
+    </Liquid>
+  );
+}`,
+  },
+  {
     id: "vue",
     label: "Vue",
     fileName: "App.vue",
@@ -94,11 +109,11 @@ chrome://flags/#canvas-draw-element
 
 For production, Chrome offers an [origin trial](https://developer.chrome.com/blog/html-in-canvas-origin-trial) that enables the API for your visitors without any flags. This site runs on an origin trial token itself, which is why the effects work here in a plain Chrome install. Tokens are bound to a specific domain, so this only benefits canvasui.dev: to get the same on your own site, register your domain for the trial and serve the token via a meta tag or HTTP header. In browsers without support, components fall back automatically: your content renders as regular HTML and no errors are thrown.
 
-Beyond that, TypeScript is recommended, since every file ships as typed source. React components target React 19, Vue components target Vue 3.5, and Svelte components target Svelte 5. Any dependencies a component needs are installed by the CLI and listed on its docs page.
+Beyond that, TypeScript is recommended, since every file ships as typed source. React components target React 19, Solid components target Solid 1.9, Vue components target Vue 3.5, and Svelte components target Svelte 5. Any dependencies a component needs are installed by the CLI and listed on its docs page.
 
 ## Install with the CLI
 
-Every component has a registry entry per framework (react, vue, svelte, vanilla):
+Every component has a registry entry per framework (react, solid, vue, svelte, vanilla):
 
 \`\`\`sh
 npx shadcn@latest add @canvas-ui/liquid-react
@@ -181,9 +196,10 @@ export default async function InstallationPage() {
         </p>
         <p>
           Beyond that, TypeScript is recommended, since every file ships as
-          typed source. React components target React 19, Vue components target
-          Vue 3.5, and Svelte components target Svelte 5. Any dependencies a
-          component needs are installed by the CLI and listed on its docs page.
+          typed source. React components target React 19, Solid components
+          target Solid 1.9, Vue components target Vue 3.5, and Svelte components
+          target Svelte 5. Any dependencies a component needs are installed by
+          the CLI and listed on its docs page.
         </p>
 
         <h2>Install with the CLI</h2>

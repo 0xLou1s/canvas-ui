@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/common/theme-provider";
 
 const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
-  "An open source component library of creative html-in-canvas and WebGL effects for React, Vue, Svelte, and vanilla JS. Creative effects running over live HTML.";
+  "An open source component library of creative html-in-canvas and WebGL effects for React, Solid, Vue, Svelte, and vanilla JS. Creative effects running over live HTML.";
 
 // Chrome origin trial token for the HTML-in-Canvas API. Tokens are public by
 // design (origin-bound, feature-bound, time-limited), so it is safe to inline.
