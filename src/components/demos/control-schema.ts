@@ -1,25 +1,5 @@
-/**
- * Declarative control schemas for demo pages and the playground.
- *
- * A demo declares a single schema object — labels, defaults, ranges,
- * options — and everything else derives from it: the rendered control rows
- * (in schema order), the URL query params, reset, and default detection.
- *
- *   const CONTROLS = {
- *     radius: scrub("Radius", 0.4, { min: 0.1, max: 0.8, step: 0.01 }),
- *     charset: radio("Charset", "ascii", CHARSETS),
- *     background: color("Background", "#000000"),
- *     meltEdges: toggle("Melt edges", true),
- *   };
- */
-
-/** Values a control can hold; every one round-trips through the URL. */
 export type ControlValue = string | number | boolean;
 
-/**
- * Visibility predicate for conditional rows. Receives the demo's current
- * values; the row (not the value) is hidden while it returns false.
- */
 export type When = (values: Record<string, ControlValue>) => boolean;
 
 export interface ScrubControl {
@@ -61,11 +41,6 @@ export interface RadioControl<V extends string = string> {
   when?: When;
 }
 
-/**
- * A URL-persisted value without a generated row. Pair it with a `rows`
- * override on DemoControls to render bespoke UI (e.g. a model loader) at
- * its schema position.
- */
 export interface CustomControl<V extends ControlValue = ControlValue> {
   kind: "custom";
   defaultValue: V;

@@ -24,9 +24,6 @@ export interface FrostProps extends FrostOptions {
 
 const emptySubscribe = () => () => {};
 
-// Layout effect so the instance (and its synchronous first content capture)
-// is created before the browser paints the frame where hydration moves the
-// content into the canvas subtree — otherwise the page flashes blank.
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 

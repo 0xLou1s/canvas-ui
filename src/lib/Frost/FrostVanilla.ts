@@ -127,10 +127,6 @@ void main () {
   gl_Position = vec4(aPos, 0.0, 1.0);
 }`;
 
-// Static tileable noise, rendered once. Sampled in content space so the
-// frost pattern scrolls with the page.
-// r: domain-warped frost pattern, g: soft mottle, b: highlight sparkle,
-// a: smooth modulation for melt edges.
 const FRAG_NOISE = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -180,7 +176,6 @@ void main () {
   outColor = vec4(pattern, mottle, sparkle, meltEdge);
 }`;
 
-// Tileable ice relief heights, rendered once. r: broad bumps, g: fine detail.
 const FRAG_HEIGHT = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -241,8 +236,6 @@ void main () {
   outColor = sum;
 }`;
 
-// Melt trail with decay. Shifted with scroll so melted spots stay on the
-// content and fresh frost scrolls in. r: melt energy.
 const FRAG_POINTER = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -295,8 +288,6 @@ void main () {
   outColor = vec4(vec3(melt), 1.0);
 }`;
 
-// Frost composite: frosted color in rgb, frozen mask (after melt) in alpha.
-// The melt boundary dissolves thin ice first and leaves a wet water band.
 const FRAG_FROST = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -357,24 +348,18 @@ void main () {
   float meltRaw = texture(uPointer, vUv).r;
 
   vec2 edgeDist = min(vUv, 1.0 - vUv);
-  // When melting edges is enabled, melted spots lose the edge boost so the
-  // borders can dissolve completely.
   float edgeBoost =
     (1.0 - smoothstep(0.0, 0.4, min(edgeDist.x, edgeDist.y)))
     * (1.0 - uMeltEdges * smoothstep(0.0, 0.5, meltRaw));
   float strength = uStrength * (0.62 + 0.65 * edgeBoost);
 
-  // Intro: frost grows in from the edges with a heavily warped front,
-  // forming in the strongest pattern cells first like real ice crystals.
   float ed = min(edgeDist.x, edgeDist.y)
     + (0.5 - warpN) * 0.34 + (0.5 - noise.g) * 0.16;
   float local = clamp((uIntro * 3.0 - ed * 2.0 - 0.3) / 1.1, 0.0, 1.0);
   strength *= local;
 
-  // Smooth frost body, anchored to the content.
   float body = contrastFn(warpN * strength + uFrost * local, uContrast);
 
-  // Crisp micro grain and sparse glints, like the reference frost.
   vec2 gUv = vUv + uScroll;
   float h = rand2(gUv + warpN * 0.05);
   float grain = h * warpN;
@@ -388,20 +373,16 @@ void main () {
 
   float m = clamp(meltRaw * (1.1 + (noise.a - 0.5) * 0.9), 0.0, 1.0);
 
-  // Dissolve on the smooth body so the melt front stays watery, not ragged.
   float d = body - m * (0.9 + 0.35 * body);
   float frozen = smoothstep(0.0, 0.22, d);
   float wet = (1.0 - frozen) * (1.0 - smoothstep(0.0, 0.55, -d));
   wet *= smoothstep(0.01, 0.1, m);
 
-  // Grain only shows where the frost body has coverage, and fades at the
-  // melt front so revealed edges stay clean.
   float cover = smoothstep(0.03, 0.35, body);
   float ice = clamp(
     contrastFn(micro * cover * frozen + body, uCrispness), 0.0, 1.0);
   float frostMask = ice * frozen;
 
-  // Watery lens wobble at the melt boundary.
   vec2 wobble = vec2(noise.a - 0.5, noise.g - 0.5) * wet * 0.018;
 
   vec3 icy = mix(uTintThin, uTintThick, body);
@@ -435,13 +416,11 @@ void main () {
   color.rgb = mix(color.rgb, frostColor, frostMask);
   color.rgb += wet * glint * 0.25;
 
-  // Overall opacity fades the whole frost layer back toward the content.
   float op = clamp(uOpacity, 0.0, 1.0);
   color.rgb = mix(base.rgb, color.rgb, op);
   outColor = vec4(clamp(color.rgb, 0.0, 1.0), frostMask * op);
 }`;
 
-// Output: refraction through procedural ice relief, fresnel.
 const FRAG_OUTPUT = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -580,11 +559,6 @@ export function createFrost(
   );
 
   let contentDirty = false;
-  // In html-in-canvas mode the content texture is empty (all zeros) until the
-  // first drawElementImage capture is uploaded; drawing the opaque output pass
-  // before then flashes a black full-viewport frame on load. Hold rendering
-  // until the first upload. The fallback path has no content texture, so it
-  // can render immediately.
   let contentReady = !htmlInCanvas;
   let wake = () => {};
 
@@ -824,10 +798,6 @@ export function createFrost(
 
   syncCanvasSize();
 
-  // Capture synchronously at init so the source canvas shows content on the
-  // very first browser paint. onpaint fires async, which would otherwise
-  // leave the page blank for a frame or two after hydration moves the
-  // content into the canvas subtree.
   if (htmlInCanvas) captureContent();
 
   function uploadContent() {
@@ -844,8 +814,6 @@ export function createFrost(
       source,
     );
     if (!contentReady) {
-      // First real capture just landed: only now is it safe to draw the
-      // opaque output pass, and the intro should start from this moment.
       contentReady = true;
       introStart = performance.now();
     }
@@ -904,10 +872,7 @@ export function createFrost(
       -(sy - lastScrollY) / cssH,
     );
     gl!.uniform2f(pointerProgram.uniforms.uScroll, sx / cssW, -sy / cssH);
-    gl!.uniform1f(
-      pointerProgram.uniforms.uTextureScale,
-      config.textureScale,
-    );
+    gl!.uniform1f(pointerProgram.uniforms.uTextureScale, config.textureScale);
     gl!.uniform1f(pointerProgram.uniforms.uDecay, config.refreeze * 0.001);
     gl!.uniform1f(pointerProgram.uniforms.uMeltNoise, config.meltNoise);
     gl!.uniform1f(
@@ -978,10 +943,7 @@ export function createFrost(
       output.width / Math.max(output.height, 1),
     );
     gl!.uniform1f(frostProgram.uniforms.uTextureScale, config.textureScale);
-    gl!.uniform1f(
-      frostProgram.uniforms.uMeltEdges,
-      config.meltEdges ? 1 : 0,
-    );
+    gl!.uniform1f(frostProgram.uniforms.uMeltEdges, config.meltEdges ? 1 : 0);
     gl!.uniform1f(frostProgram.uniforms.uIntro, introProgress(now));
     gl!.uniform1f(frostProgram.uniforms.uHighlight, config.highlight);
     gl!.uniform1f(frostProgram.uniforms.uStrength, config.strength);
@@ -1073,7 +1035,6 @@ export function createFrost(
     gl!.disable(gl!.BLEND);
     uploadContent();
     if (!contentReady) {
-      // Waiting for the first content capture; onpaint -> wake() restarts us.
       running = false;
       return;
     }

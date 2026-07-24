@@ -4,8 +4,6 @@ import { useCallback, useSyncExternalStore } from "react";
 
 const EVENT = "canvasui:pref";
 
-// Touching localStorage can throw (cookies blocked entirely, some embedded
-// webviews); treat that the same as nothing stored so pages still render.
 function readStored(storageKey: string): string | null {
   try {
     return window.localStorage.getItem(storageKey);
@@ -45,9 +43,7 @@ export function usePreference<T extends string>(
     (next: T) => {
       try {
         window.localStorage.setItem(storageKey, next);
-      } catch {
-        // Persisting failed; still notify so the in-tab UI updates.
-      }
+      } catch {}
       window.dispatchEvent(new Event(EVENT));
     },
     [storageKey],

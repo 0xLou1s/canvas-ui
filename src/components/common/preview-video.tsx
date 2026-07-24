@@ -35,7 +35,6 @@ export function PreviewVideo({
         .catch(() => {});
     };
 
-    // Defer fetching video data until the card is near the viewport.
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {

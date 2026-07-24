@@ -6,10 +6,6 @@ export interface ComponentEntry {
   video: string;
 }
 
-/**
- * Preview videos with light (white-on-light) content. These need the
- * opposite theme filter: inverted in dark mode, untouched in light mode.
- */
 export const LIGHT_VIDEOS = new Set([
   "/assets/videos/frost.webm",
   "/assets/videos/glitch.webm",

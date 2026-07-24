@@ -19,7 +19,6 @@ import type {
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-/** Trims scrubber float noise (0.30000000000000004 → "0.3"). */
 const parseAsControlNumber = createParser<number>({
   parse(query) {
     const value = Number.parseFloat(query);
@@ -30,10 +29,6 @@ const parseAsControlNumber = createParser<number>({
   },
 });
 
-/**
- * Serializes "#d1dbff" as "d1dbff" so URLs stay free of %23 escapes.
- * A color's `auto` sentinel (its default) passes through untouched.
- */
 function colorParser(sentinel: string | undefined) {
   return createParser<string>({
     parse(query) {
@@ -80,12 +75,6 @@ function buildParsers(schema: ControlSchema): Record<string, ControlParser> {
   ) as Record<string, ControlParser>;
 }
 
-/**
- * URL-persisted state for a control schema. Values live in the query
- * string (shallow, throttled `history.replaceState`; defaults are removed
- * from the URL), so the address bar is always a shareable link to the
- * exact configuration on screen.
- */
 export interface DemoControlsHandle<S extends ControlSchema = ControlSchema> {
   schema: S;
   values: SchemaValues<S>;
@@ -97,7 +86,6 @@ export interface DemoControlsHandle<S extends ControlSchema = ControlSchema> {
 export function useDemoControls<S extends ControlSchema>(
   schema: S,
 ): DemoControlsHandle<S> {
-  // Schemas are module-level constants; parsers are derived once.
   const [parsers] = useState(() => buildParsers(schema));
   const [state, setState] = useQueryStates(parsers, { history: "replace" });
 

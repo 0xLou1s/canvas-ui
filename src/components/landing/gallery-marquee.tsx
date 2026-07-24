@@ -47,18 +47,10 @@ function GalleryCard({
   );
 }
 
-/**
- * The card rows are mounted on the client only, so the 24 cards (and their
- * seamless-loop duplicates) are not serialized into the prerendered HTML or
- * the RSC flight payload. A card-shaped placeholder reserves the exact row
- * height before hydration to avoid layout shift.
- */
 export function GalleryMarquee() {
   const hostRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
-  // Mount the cards only when the gallery approaches the viewport, keeping
-  // them out of the hydration work and the initial network burst.
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;

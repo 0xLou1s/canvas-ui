@@ -54,15 +54,9 @@ export function useDemoScrollbarGutter() {
     };
   }, [contentEl]);
 
-  // In html-in-canvas mode the demo scrolls an element hidden inside the
-  // source canvas, so its native scrollbar is only visible as part of the
-  // captured texture — warped or clipped away by most effects. Draw a real
-  // overlay scrollbar outside the canvas instead, synced to that scroller.
   useEffect(() => {
     const el = contentEl;
     if (!el) return;
-    // Find the scroller via the document rather than through contentEl so
-    // the mutations below don't touch a state-derived value.
     const canvas = [
       ...document.querySelectorAll<HTMLCanvasElement>("canvas[layoutsubtree]"),
     ].find((node) => node.contains(el));
@@ -163,11 +157,6 @@ export const DemoControlsTargetContext = createContext<HTMLElement | null>(
   null,
 );
 
-/**
- * Copies a link to the current configuration. Control values live in the
- * URL, so the address bar is always the shareable artifact — this simply
- * makes that discoverable from the controls panel.
- */
 function ShareLinkButton() {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -230,7 +219,6 @@ export interface DemoControlsProps<S extends ControlSchema> {
   snippet?: DemoSnippet;
 }
 
-/** Renders a schema's control rows in declaration order. */
 function SchemaRows<S extends ControlSchema>({
   controls,
   rows,
@@ -238,8 +226,6 @@ function SchemaRows<S extends ControlSchema>({
   controls: DemoControlsHandle<S>;
   rows?: Partial<Record<keyof S & string, ReactNode>>;
 }) {
-  // The panel iterates the schema with string keys; narrowing back to the
-  // schema's own key/value pairs is safe by construction.
   const set = controls.setValue as (key: string, value: unknown) => void;
   const values = controls.values as Record<string, string | number | boolean>;
 

@@ -44,11 +44,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
         className="z-40 outline-none"
-        // `mt-2` off the trigger, matching CopyMenu's popup.
         sideOffset={8}
-        // Base UI defaults to overlaying the trigger so the selected item sits
-        // under the cursor. The docs chrome reads better as a plain dropdown:
-        // anchored below, edges flush with the trigger.
         alignItemWithTrigger={false}
         align={align}
       >

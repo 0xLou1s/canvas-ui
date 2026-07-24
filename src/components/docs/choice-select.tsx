@@ -16,14 +16,6 @@ export interface ChoiceOption<T extends string = string> {
   label: string;
 }
 
-/**
- * The control the docs chrome uses to switch framework, package manager, or
- * client. By default it's the Base UI select at every viewport size — with six
- * supported frameworks a row of tabs no longer fits. Short, fixed lists (the
- * four package managers) can opt into `variant="tabs"`: the flush tablist on
- * `sm` and up, collapsing to the select below where tabs would overflow. Call
- * sites supply data only.
- */
 export function ChoiceSelect<T extends string>({
   label,
   options,

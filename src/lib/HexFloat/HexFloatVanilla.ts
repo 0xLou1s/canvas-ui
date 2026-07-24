@@ -140,19 +140,12 @@ float hexDist (vec2 p) {
   return max(dot(p, vec2(0.5, 0.8660254)), p.x);
 }
 
-// Fluid-driven reading window. uFlow is the dye field of a small fluid sim
-// (same technique as the Liquid component) in viewport space: the cursor
-// injects dye that advects, swirls and dissipates. Tiles flatten where the
-// dye is dense, so the window pools, flows and heals like liquid.
 float flowAt (vec2 xy) {
   vec2 uv = (xy * uSize - uScroll) / uRes;
   if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) return 0.0;
   return clamp(texture(uFlow, uv).r, 0.0, 4.0);
 }
 
-// Height of a tile: idle bob, flattened where the fluid pools, plus a lifted
-// rim of tiles along the fluid's thin edges. Negative z is toward the camera.
-// f is the tile's flow sample, fetched once per cell by the caller.
 float tileZ (vec2 center, float f) {
   vec2 id = center * vec2(1.0, 1.0 / SQ3);
   float h = hash12(id * 7.31 + 3.7);
@@ -163,8 +156,6 @@ float tileZ (vec2 center, float f) {
   return -(bob + lift * 1.2);
 }
 
-// Viewport capture in device px. Outside the captured area there is no
-// content, so return transparent instead of smearing the edge pixels.
 vec4 page (vec2 px) {
   vec2 p = px / uRes;
   if (p.x < 0.0 || p.x > uMaxX || p.y < 0.0 || p.y > 1.0) return vec4(0.0);
@@ -180,9 +171,6 @@ vec4 shade (vec2 sUv) {
   float aspect = uRes.x / uRes.y;
   vec2 ndc = vec2((sUv.x * 2.0 - 1.0) * aspect, sUv.y * 2.0 - 1.0);
 
-  // Camera. The focal length and look-at offset are solved so the captured
-  // viewport strip maps exactly onto the screen: nothing is clipped when the
-  // page tilts, the far edge just compresses. uDist drives the perspective.
   float sa = sin(uTilt);
   float ca = cos(uTilt);
   vec3 fwd = vec3(0.0, -sa, ca);
@@ -208,8 +196,6 @@ vec4 shade (vec2 sUv) {
   float tFloor = (floorZ - ro.z) / rd.z;
   float t0 = max((-maxUp - ro.z) / rd.z, 0.0);
 
-  // Exact hex-grid traversal: visit cells along the ray and intersect each
-  // cell prism analytically. No sphere tracing, no cracks, no twitching.
   vec2 oxy = ro.xy;
   vec2 rxy = rd.xy;
   vec2 sp = oxy + rxy * t0;
@@ -230,17 +216,13 @@ vec4 shade (vec2 sUv) {
   float hwc = hw;
   float fCell = 0.0;
   for (int i = 0; i < 64; i++) {
-    // One flow fetch per cell drives height, gap closing and lighting fade.
     fCell = flowAt(center);
     zc = tileZ(center, fCell);
-    // Gaps close inside the reading window; tiles overlap a hair past the
-    // cell boundary so no seams or vertex pinholes survive.
     hwc = mix(hw, 0.502, smoothstep(0.18, 0.85, fCell));
     float zTop = zc - th;
     float tZin = (zTop - ro.z) / rd.z;
     float tZout = (zc + th - ro.z) / rd.z;
 
-    // Interval where the ray is inside this tile footprint (hex of size hw).
     float tIn = -1.0e9;
     float tOut = 1.0e9;
     vec2 inN = vec2(0.0);
@@ -273,7 +255,6 @@ vec4 shade (vec2 sUv) {
       }
     }
 
-    // Step to the neighbor whose cell boundary the ray crosses first.
     float tExit = 1.0e9;
     vec2 step2 = vec2(0.0);
     for (int k = 0; k < 3; k++) {
@@ -291,7 +272,6 @@ vec4 shade (vec2 sUv) {
   vec3 Ld = normalize(vec3(-0.35, -0.5, -0.78));
 
   if (!hit) {
-    // Between the tiles: a floor in shadow, darker close to the walls.
     vec2 fl = (oxy + rxy * tFloor);
     vec2 fLocal = fl;
     hextile(fLocal);
@@ -307,7 +287,6 @@ vec4 shade (vec2 sUv) {
   float fc = smoothstep(0.18, 0.85, fCell);
 
   if (onTop) {
-    // Beveled rim: tilt the normal outward in a band along the edge.
     vec2 lp = p.xy - center;
     float e = hwc - hexDist(lp);
     if (e < bevW) {
@@ -323,8 +302,6 @@ vec4 shade (vec2 sUv) {
 
   float diff = max(dot(n, Ld), 0.0);
   vec3 refl = reflect(rd, n);
-  // Glassy dual-lobe highlight: a tight glint plus a broad soft sheen from a
-  // fill light, tinted with a subtle iridescence that drifts across the grid.
   vec3 Ld2 = normalize(vec3(0.55, -0.25, -0.8));
   float glintL = pow(max(dot(refl, Ld), 0.0), 120.0);
   float sheenL = pow(max(dot(refl, Ld2), 0.0), 8.0) * 0.35;
@@ -343,8 +320,6 @@ vec4 shade (vec2 sUv) {
   }
 
   if (onTop) {
-    // Tile top: the page patch, lit gently so text stays readable. Inside the
-    // reading window the lighting fades out entirely, leaving the raw page.
     vec4 c = page(p.xy * cell - uScroll);
     vec3 face = mix(uBg, c.rgb, c.a);
     vec3 lit = face * (0.86 + 0.14 * diff + raised * 0.06)
@@ -352,17 +327,12 @@ vec4 shade (vec2 sUv) {
     return vec4(mix(lit, face, fc), 1.0);
   }
 
-  // Walls take the seam color so a custom gapColor reads true, with gentle
-  // diffuse shading and floor-contact shadow keeping the depth.
   float wallAo = 1.0 - smoothstep(zc - th, floorZ, p.z) * 0.4;
   vec3 wallCol = seam * mix(0.55, 1.0, diff) * wallAo
     + specCol * 1.3 + fres * iridTint * 0.28 * uShine;
   return vec4(wallCol, 1.0);
 }
 
-// Adaptive rotated-grid supersampling: flat tile interiors resolve with two
-// diagonal samples; only pixels where they disagree (rims, bevels, far rows)
-// pay for the other two. Halves the shading cost on most of the screen.
 void main () {
   vec2 sUv = vec2(vUv.x, 1.0 - vUv.y);
   vec2 px = 1.0 / uRes;
@@ -377,12 +347,6 @@ void main () {
     outColor = c * 0.5;
   }
 }`;
-
-// ---------------------------------------------------------------------------
-// Fluid simulation (same technique as the Liquid component). A small GPU
-// fluid sim runs in viewport space; the cursor injects dye + velocity and the
-// resulting dye field drives which tiles flatten into the reading window.
-// ---------------------------------------------------------------------------
 
 const SIM_VERT = `#version 300 es
 precision highp float;
@@ -564,8 +528,6 @@ interface DoubleTarget {
   swap: () => void;
 }
 
-// Post-processing: bloom (bright-pass + separable blur at quarter res) and
-// film grain. Both passes are skipped entirely when their props are 0.
 const FRAG_BRIGHT = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -612,7 +574,8 @@ void main () {
   outColor = vec4(col, clamp(scene.a + ba, 0.0, 1.0));
 }`;
 
-const SIM_RES = 96;const FLOW_RES = 256;
+const SIM_RES = 96;
+const FLOW_RES = 256;
 const SIM_DT = 1 / 60;
 const VELOCITY_DISSIPATION = 0.985;
 const PRESSURE_DECAY = 0.8;
@@ -624,17 +587,11 @@ export function supportsHtmlInCanvas(): boolean {
   const ctx = probe.getContext("2d") as ElementImageContext | null;
   return Boolean(
     ctx &&
-      typeof ctx.drawElementImage === "function" &&
-      typeof probe.requestPaint === "function",
+    typeof ctx.drawElementImage === "function" &&
+    typeof probe.requestPaint === "function",
   );
 }
 
-// CSS :hover follows the browser's flat hit-testing, which no longer matches
-// the tilted render, so the wrong element would light up on hover. Rewrite
-// same-origin :hover rules so that, inside remapped content, hover is driven
-// by a data attribute we set on the element that is visually under the
-// pointer, while native :hover keeps working everywhere else. :is()/:where()
-// keep the specificity of each rewritten selector identical to the original.
 const HOVER_ATTR = "data-canvasui-hover";
 const CONTENT_ATTR = "data-canvasui-content";
 const HOVER_REWRITE = `:is([${HOVER_ATTR}], :hover:where(:not([${CONTENT_ATTR}], [${CONTENT_ATTR}] *)))`;
@@ -665,12 +622,8 @@ function patchHoverRules() {
   for (const sheet of Array.from(document.styleSheets)) {
     try {
       walk(sheet.cssRules);
-    } catch {
-      // Cross-origin stylesheet: not readable, skip.
-    }
+    } catch {}
   }
-  // The remapped cursor is driven from the visually hovered element; children
-  // must not override it from the browser's flat hit-testing.
   const style = document.createElement("style");
   style.textContent = `[${CONTENT_ATTR}], [${CONTENT_ATTR}] * { cursor: var(--canvasui-cursor, auto) !important; }`;
   document.head.appendChild(style);
@@ -696,8 +649,8 @@ export function createHexFloat(
   const paintable = source as PaintableCanvas;
   const htmlInCanvas = Boolean(
     sourceCtx &&
-      typeof sourceCtx.drawElementImage === "function" &&
-      typeof paintable.requestPaint === "function",
+    typeof sourceCtx.drawElementImage === "function" &&
+    typeof paintable.requestPaint === "function",
   );
 
   let contentDirty = false;
@@ -710,9 +663,7 @@ export function createHexFloat(
         sourceCtx!.drawElementImage!(content, 0, 0);
         contentDirty = true;
         wake();
-      } catch {
-        // drawElementImage can throw while layout is settling; skip the frame.
-      }
+      } catch {}
     };
   }
 
@@ -753,7 +704,6 @@ export function createHexFloat(
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-  // --- Fluid sim setup (drives the reading window) -------------------------
   gl.getExtension("EXT_color_buffer_float");
   const supportsLinear = Boolean(gl.getExtension("OES_texture_float_linear"));
   const filtering = supportsLinear ? gl.LINEAR : gl.NEAREST;
@@ -896,9 +846,13 @@ export function createHexFloat(
     return unit;
   }
 
-  // Inject velocity (from cursor movement) and dye (continuously, so the
-  // window stays open while the cursor rests) at viewport uv (x, y).
-  function applySplat(x: number, y: number, dx: number, dy: number, dye: number) {
+  function applySplat(
+    x: number,
+    y: number,
+    dx: number,
+    dy: number,
+    dye: number,
+  ) {
     const aspect = output.clientWidth / Math.max(output.clientHeight, 1);
     const rUv = Math.max(config.radius, 40) / Math.max(output.clientHeight, 1);
     const radius = rUv * rUv * 0.28;
@@ -1027,9 +981,7 @@ export function createHexFloat(
       advectProgram.uniforms.uSource,
       bindSimTexture(flow.read.texture, 1),
     );
-    // trail maps to dye dissipation: short-lived (0.90) to lingering (0.98).
-    const flowDissipation =
-      0.9 + Math.min(Math.max(config.trail, 0), 1) * 0.08;
+    const flowDissipation = 0.9 + Math.min(Math.max(config.trail, 0), 1) * 0.08;
     gl!.uniform1f(
       advectProgram.uniforms.uDissipation,
       Math.pow(flowDissipation, delta * 60),
@@ -1037,9 +989,7 @@ export function createHexFloat(
     blit(flow.write);
     flow.swap();
   }
-  // --- End fluid sim setup --------------------------------------------------
 
-  // --- Post-processing setup (bloom + grain) --------------------------------
   function createPostProgram(fragSource: string): SimProgram {
     const prog = gl!.createProgram()!;
     gl!.attachShader(prog, vertexShader);
@@ -1117,8 +1067,6 @@ export function createHexFloat(
     bloomA = createPostTarget(bw, bh);
     bloomB = createPostTarget(bw, bh);
   }
-  // --- End post-processing setup ---------------------------------------------
-
 
   const contentTexture = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, contentTexture);
@@ -1268,8 +1216,6 @@ export function createHexFloat(
       return;
     }
 
-    // Scene into an offscreen target, then bloom (bright-pass + separable
-    // blur at quarter res) and grain composite back to the canvas.
     ensurePost();
     blit(sceneTarget!);
 
@@ -1331,10 +1277,7 @@ export function createHexFloat(
   function animating(): boolean {
     if (reducedMotion) return false;
     if (config.float > 0) return true;
-    // Grain is animated, so keep rendering while it is enabled.
     if (config.grain > 0.001) return true;
-    // Keep the sim running while the cursor is on the content and for a few
-    // seconds after the last splat, so the fluid window swirls and decays.
     if (pointerOn) return true;
     if (performance.now() < simActiveUntil) return true;
     return false;
@@ -1351,8 +1294,6 @@ export function createHexFloat(
     if (!reducedMotion) {
       time += delta * Math.max(config.speed, 0);
       if (pointerOn) {
-        // Splat at the remapped cursor (the content point visually under the
-        // pointer), continuously, so the window pools while the cursor rests.
         const p = contentPoint(pointerClientX, pointerClientY);
         if (p) {
           const w = Math.max(output.clientWidth, 1);
@@ -1414,10 +1355,6 @@ export function createHexFloat(
   }
   content.addEventListener("scroll", onScroll, { passive: true });
 
-  // The tilted camera shifts where elements appear, so raw clicks land on the
-  // wrong DOM node. Invert the camera mapping (screen ray onto the page plane)
-  // and re-dispatch the click at the element that is visually under the
-  // pointer, so links and buttons stay clickable at any tilt/perspective.
   function contentPoint(
     clientX: number,
     clientY: number,
@@ -1459,7 +1396,6 @@ export function createHexFloat(
 
   let forwarding = false;
 
-  // Drive hover + cursor from the visually-under-pointer element.
   let hoverChain: Element[] = [];
   let hoverTarget: Element | null = null;
 
@@ -1510,7 +1446,6 @@ export function createHexFloat(
     const rect = content.getBoundingClientRect();
     const tx = rect.left + p.x;
     const ty = rect.top + p.y;
-    // Identity mapping (no tilt): let the native click through untouched.
     if (Math.hypot(tx - event.clientX, ty - event.clientY) < 1.5) return;
     event.preventDefault();
     event.stopPropagation();
@@ -1543,10 +1478,10 @@ export function createHexFloat(
 
   content.addEventListener("click", onClick, true);
 
-  // Text selection needs the same treatment: the native drag-selection would
-  // anchor at the raw pointer position, one row off under tilt. Drive the
-  // selection manually from the remapped caret positions instead.
-  function caretAt(x: number, y: number): { node: Node; offset: number } | null {
+  function caretAt(
+    x: number,
+    y: number,
+  ): { node: Node; offset: number } | null {
     const doc = document as Document & {
       caretPositionFromPoint?: (
         x: number,

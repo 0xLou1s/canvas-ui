@@ -173,8 +173,6 @@ function makeStandalone(
   if (kind === "vue") {
     return `<script lang="ts">\n${body}\n</script>\n\n${stripped}`;
   }
-  // A component may only have one module script, so when the wrapper already
-  // has one (e.g. for ambient type declarations), inline the engine into it.
   const moduleTag = '<script module lang="ts">';
   if (stripped.includes(moduleTag)) {
     return stripped.replace(moduleTag, `${moduleTag}\n${body}\n`);
@@ -308,9 +306,6 @@ export function getRegistryItem(name: string): RegistryItem | null {
   );
   if (!source) return null;
 
-  // Svelte installs under src/lib so the idiomatic `$lib/components/canvasui/…`
-  // import works in SvelteKit; the CLI otherwise drops the file in
-  // (src/)components/canvasui, which no SvelteKit alias points at.
   const target =
     id === "svelte"
       ? `src/lib/components/canvasui/${source.fileName}`

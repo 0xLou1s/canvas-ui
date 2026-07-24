@@ -11,10 +11,6 @@ const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
   "An open source component library of creative html-in-canvas and WebGL effects for React, Solid, Vue, Svelte, and vanilla JS. Creative effects running over live HTML.";
 
-// Chrome origin trial token for the HTML-in-Canvas API. Tokens are public by
-// design (origin-bound, feature-bound, time-limited), so it is safe to inline.
-// Register at https://developer.chrome.com/origintrials and paste the token
-// into NEXT_PUBLIC_HTML_IN_CANVAS_OT_TOKEN (or directly below) at build time.
 const ORIGIN_TRIAL_TOKEN =
   process.env.NEXT_PUBLIC_HTML_IN_CANVAS_OT_TOKEN ?? "";
 

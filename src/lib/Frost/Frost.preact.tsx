@@ -55,9 +55,6 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
     if (el) el.setAttribute("layoutsubtree", "true");
   }, []);
 
-  // Layout effect so the instance (and its synchronous first content capture)
-  // is created before the browser paints the frame where content moves into
-  // the canvas subtree — otherwise the page flashes blank.
   useLayoutEffect(() => {
     const source = sourceRef.current;
     const content = contentRef.current;

@@ -224,12 +224,6 @@ export function supportsHtmlInCanvas(): boolean {
   );
 }
 
-// CSS :hover follows the browser's flat hit-testing, which no longer matches
-// the bent render, so the wrong element would light up on hover. Rewrite
-// same-origin :hover rules so that, inside remapped content, hover is driven
-// by a data attribute we set on the element that is visually under the
-// pointer, while native :hover keeps working everywhere else. :is()/:where()
-// keep the specificity of each rewritten selector identical to the original.
 const HOVER_ATTR = "data-canvasui-hover";
 const CONTENT_ATTR = "data-canvasui-content";
 const HOVER_REWRITE = `:is([${HOVER_ATTR}], :hover:where(:not([${CONTENT_ATTR}], [${CONTENT_ATTR}] *)))`;
@@ -260,12 +254,8 @@ function patchHoverRules() {
   for (const sheet of Array.from(document.styleSheets)) {
     try {
       walk(sheet.cssRules);
-    } catch {
-      // Cross-origin stylesheet: not readable, skip.
-    }
+    } catch {}
   }
-  // The remapped cursor is driven from the visually hovered element; children
-  // must not override it from the browser's flat hit-testing.
   const style = document.createElement("style");
   style.textContent = `[${CONTENT_ATTR}], [${CONTENT_ATTR}] * { cursor: var(--canvasui-cursor, auto) !important; }`;
   document.head.appendChild(style);
@@ -731,7 +721,6 @@ export function createBend(
 
   let forwarding = false;
 
-  // Drive hover + cursor from the visually-under-pointer element.
   let hoverChain: Element[] = [];
   let hoverTarget: Element | null = null;
   let hoverClientX = 0;
@@ -834,9 +823,6 @@ export function createBend(
   }
   content.addEventListener("click", onClick, true);
 
-  // Text selection needs the same treatment: the native drag-selection would
-  // anchor at the raw pointer position, on the wrong row under the bend.
-  // Drive the selection manually from the remapped caret positions instead.
   function caretAt(x: number, y: number): { node: Node; offset: number } | null {
     const doc = document as Document & {
       caretPositionFromPoint?: (

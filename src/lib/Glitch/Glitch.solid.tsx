@@ -43,12 +43,6 @@ export function Glitch(props: GlitchProps) {
   let sourceEl!: HTMLCanvasElement;
   let outputEl!: HTMLCanvasElement;
   let instance: GlitchInstance | null = null;
-  // A signal rather than a `let`, because this element is destroyed and rebuilt
-  // when `native()` flips between the in-canvas and fallback branches. This
-  // effect is created before the JSX, so on a flip it runs *first* and a plain
-  // `let` would still hold the detached div from the previous branch — the
-  // engine would then rasterize a 0x0 orphan and paint nothing. Tracking the
-  // ref makes the effect re-run when the new element actually lands.
   const [contentEl, setContentEl] = createSignal<HTMLDivElement>();
 
   onMount(() => {

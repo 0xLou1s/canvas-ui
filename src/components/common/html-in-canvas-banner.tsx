@@ -25,10 +25,7 @@ function supportsHtmlInCanvas(): boolean {
   return cachedSupport;
 }
 
-// Never subscribe — support can't change without a browser restart.
 const subscribe = () => () => {};
-// Assume supported during SSR so the banner stays hidden until the client
-// probes, avoiding a flash for the common (flag-off is the exception) case.
 const getServerSnapshot = () => true;
 
 type BrowserKind = "chromium" | "unsupported" | "unknown";
@@ -43,11 +40,6 @@ interface BrowserInfo {
 
 let cachedBrowser: BrowserInfo | null = null;
 
-/**
- * Best-effort browser detection to tailor the enable instructions. HTML-in-Canvas
- * is a Chromium-only experimental API, so Firefox/Safari (and iOS, which is all
- * WebKit) are "unsupported" — there is no flag to flip there.
- */
 function detectBrowser(): BrowserInfo {
   if (cachedBrowser) return cachedBrowser;
   if (typeof navigator === "undefined") {
@@ -60,7 +52,6 @@ function detectBrowser(): BrowserInfo {
 
   let info: BrowserInfo;
   if (isIOS) {
-    // Every iOS browser is WebKit under the hood — the flag doesn't exist.
     info = { name: "Safari", kind: "unsupported", flag: CHROME_FLAG };
   } else if (typeof nav.brave !== "undefined") {
     info = { name: "Brave", kind: "chromium", flag: `brave://${FLAG_PATH}` };
@@ -82,12 +73,6 @@ function detectBrowser(): BrowserInfo {
   return info;
 }
 
-/**
- * One-line warning shown directly above a demo whose effect genuinely does not
- * work without Chrome's experimental HTML-in-Canvas flag. Opt in per page via
- * ComponentDoc's `requiresHtmlInCanvas` prop — do not show it for effects that
- * degrade gracefully to a usable fallback.
- */
 export function HtmlInCanvasBanner() {
   const supported = useSyncExternalStore(subscribe, supportsHtmlInCanvas, getServerSnapshot);
 
@@ -166,7 +151,6 @@ function CopyFlag({ flag }: { flag: string }) {
   }, []);
 
   const copy = () => {
-    // Only confirm once the write actually succeeds.
     navigator.clipboard
       .writeText(flag)
       .then(() => {

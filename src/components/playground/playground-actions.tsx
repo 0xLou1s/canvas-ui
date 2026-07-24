@@ -201,15 +201,13 @@ export function PlaygroundActions({
   const [frameworkId] = usePreference("framework", "react", FRAMEWORK_IDS);
 
   const shareUrl = `${SITE_URL}/playground?c=${slug}`;
-  // Control tweaks are persisted to the query string, so the current URL is
-  // the shareable artifact for the exact configuration on screen.
-  const customizedShareUrl = () =>
-    `${SITE_URL}/playground${window.location.search || `?c=${slug}`}`;
-  const hasCustomizations = () => {
+  const controlParams = () => {
     const params = new URLSearchParams(window.location.search);
     params.delete("c");
-    return params.size > 0;
+    return params;
   };
+  const hasCustomizations = () => controlParams().size > 0;
+  const customizedShareUrl = () => `${shareUrl}&${controlParams()}`;
   const installCommand = () =>
     buildInstallCommand(managerId, slug, frameworkId);
 

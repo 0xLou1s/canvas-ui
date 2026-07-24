@@ -35,9 +35,6 @@ export function PlaygroundClient() {
   const demo = getPlaygroundDemo(param);
   const Demo = demo.Component;
 
-  // Raw replaceState (not a nuqs write) so the previous component's control
-  // params are dropped atomically with the slug change; enableHistorySync
-  // feeds the update back into nuqs state.
   const select = (next: string) => {
     const resolved = getPlaygroundDemo(next).slug;
     window.history.replaceState(
