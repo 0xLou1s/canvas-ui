@@ -1,5 +1,13 @@
-import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
+/** @jsxImportSource preact */
+
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createFrost,
@@ -9,7 +17,7 @@ import {
 } from "./FrostVanilla";
 
 export interface FrostProps extends FrostOptions {
-  children: JSX.Element;
+  children: ComponentChildren;
   className?: string;
   style?: JSX.CSSProperties;
 }
@@ -47,7 +55,10 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
     if (el) el.setAttribute("layoutsubtree", "true");
   }, []);
 
-  useEffect(() => {
+  // Layout effect so the instance (and its synchronous first content capture)
+  // is created before the browser paints the frame where content moves into
+  // the canvas subtree — otherwise the page flashes blank.
+  useLayoutEffect(() => {
     const source = sourceRef.current;
     const content = contentRef.current;
     const output = outputRef.current;
@@ -68,7 +79,7 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
   });
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceRefCallback}
         style={
@@ -87,7 +98,7 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -101,7 +112,7 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

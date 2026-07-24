@@ -1,6 +1,7 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
-import { type ComponentChildren } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createPeel,
@@ -79,7 +80,7 @@ export function Peel({
   }, []);
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       {native ? (
         <div
           ref={underRef}
@@ -90,7 +91,7 @@ export function Peel({
             visibility: "hidden",
           }}
         >
-          {under as any}
+          {under}
         </div>
       ) : null}
       <canvas
@@ -118,7 +119,7 @@ export function Peel({
               pointerEvents: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -132,7 +133,7 @@ export function Peel({
             overflow: "hidden",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

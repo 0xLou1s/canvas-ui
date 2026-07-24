@@ -1,6 +1,7 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
-import { type ComponentChildren } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createVHS,
@@ -69,7 +70,7 @@ export function VHS({ children, className, style, ...options }: VHSProps) {
   }, []);
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceCallbackRef}
         style={
@@ -88,7 +89,7 @@ export function VHS({ children, className, style, ...options }: VHSProps) {
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -102,7 +103,7 @@ export function VHS({ children, className, style, ...options }: VHSProps) {
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

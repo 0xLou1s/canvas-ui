@@ -1,5 +1,7 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createRipple,
@@ -21,7 +23,7 @@ function useSyncExternalStore<T>(
 }
 
 export interface RippleProps extends RippleOptions {
-  children: preact.ComponentChildren;
+  children: ComponentChildren;
   className?: string;
   style?: JSX.CSSProperties;
 }
@@ -68,7 +70,7 @@ export function Ripple({ children, className, style, ...options }: RippleProps) 
   }, []);
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceRefCallback}
         style={
@@ -87,7 +89,7 @@ export function Ripple({ children, className, style, ...options }: RippleProps) 
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -101,7 +103,7 @@ export function Ripple({ children, className, style, ...options }: RippleProps) 
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

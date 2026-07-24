@@ -1,5 +1,7 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createAsciify,
@@ -22,7 +24,7 @@ function useSyncExternalStore<T>(
 }
 
 export interface AsciifyProps extends AsciifyOptions {
-  children: JSX.Element;
+  children: ComponentChildren;
   className?: string;
   style?: JSX.CSSProperties;
 }
@@ -74,7 +76,7 @@ export function Asciify({
   }, []);
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceRefCallback}
         style={
@@ -93,7 +95,7 @@ export function Asciify({
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -107,7 +109,7 @@ export function Asciify({
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

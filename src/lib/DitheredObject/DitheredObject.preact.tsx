@@ -1,3 +1,5 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { JSX } from "preact";
 
@@ -36,7 +38,7 @@ export function DitheredObject({
   });
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={canvasRef}
         style={{

@@ -1,5 +1,7 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState, useCallback } from "preact/hooks";
-import type { JSX } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
 import {
   createDroplets,
@@ -9,7 +11,7 @@ import {
 } from "./DropletsVanilla";
 
 export interface DropletsProps extends DropletsOptions {
-  children: JSX.Element;
+  children: ComponentChildren;
   className?: string;
   style?: JSX.CSSProperties;
 }
@@ -73,7 +75,7 @@ export function Droplets({
   });
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceRefCallback}
         style={
@@ -92,7 +94,7 @@ export function Droplets({
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -106,7 +108,7 @@ export function Droplets({
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas

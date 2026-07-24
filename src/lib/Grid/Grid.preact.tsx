@@ -1,3 +1,5 @@
+/** @jsxImportSource preact */
+
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ComponentChildren, JSX } from "preact";
 
@@ -68,7 +70,7 @@ export function Grid({ children, className, style, ...options }: GridProps) {
   });
 
   return (
-    <div className={className} style={{ position: "relative", ...(style as any) }}>
+    <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={sourceRefCallback}
         style={
@@ -87,7 +89,7 @@ export function Grid({ children, className, style, ...options }: GridProps) {
               overflow: "auto",
             }}
           >
-            {children as any}
+            {children}
           </div>
         ) : null}
       </canvas>
@@ -101,7 +103,7 @@ export function Grid({ children, className, style, ...options }: GridProps) {
             overflow: "auto",
           }}
         >
-          {children as any}
+          {children}
         </div>
       ) : null}
       <canvas
