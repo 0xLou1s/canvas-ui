@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { ThemeFavicon } from "@/components/common/theme-favicon";
 import { ThemeProvider } from "@/components/common/theme-provider";
+import { UrlStateProvider } from "@/components/common/url-state-provider";
 
 const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
@@ -92,7 +93,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <ThemeProvider>
           <ThemeFavicon />
-          {children}
+          <UrlStateProvider>{children}</UrlStateProvider>
         </ThemeProvider>
       </body>
     </html>

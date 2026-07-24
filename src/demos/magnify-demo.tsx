@@ -1,42 +1,14 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
+import { color, scrub, toggle } from "@/components/demos/control-schema";
 import {
-  ColorRow,
   DemoControls,
-  ScrubberRows,
-  SwitchRow,
   useDemoScrollbarGutter,
-  valuesAreDefault,
-  type ScrubberDef,
 } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Magnify } from "@/lib/Magnify/Magnify";
-
-type MagnifyValues = {
-  size: number;
-  zoom: number;
-  follow: number;
-  hud: number;
-  aberration: number;
-  haze: number;
-  rippleSpeed: number;
-  rippleWidth: number;
-  rippleBendWidth: number;
-  rippleBend: number;
-  rippleGlow: number;
-};
-
-type MagnifyToggles = {
-  ring: boolean;
-  crosshair: boolean;
-  ticks: boolean;
-  brackets: boolean;
-  dot: boolean;
-  grid: boolean;
-  readout: boolean;
-  ripples: boolean;
-};
 
 function hexToRgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
@@ -47,117 +19,75 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-const DEFAULT_COLOR = "#cccccc";
-
-const DEFAULT_VALUES: MagnifyValues = {
-  size: 140,
-  zoom: 1.5,
-  follow: 0.25,
-  hud: 0.8,
-  aberration: 0.8,
-  haze: 0.2,
-  rippleSpeed: 900,
-  rippleWidth: 2,
-  rippleBendWidth: 100,
-  rippleBend: 20,
-  rippleGlow: 1,
-};
-
-const DEFAULT_TOGGLES: MagnifyToggles = {
-  ring: true,
-  crosshair: true,
-  ticks: true,
-  brackets: true,
-  dot: true,
-  grid: false,
-  readout: true,
-  ripples: true,
-};
-
-const TOGGLES: { key: keyof MagnifyToggles; label: string }[] = [
-  { key: "ring", label: "Ring" },
-  { key: "crosshair", label: "Crosshair" },
-  { key: "ticks", label: "Ticks" },
-  { key: "brackets", label: "Brackets" },
-  { key: "dot", label: "Center dot" },
-  { key: "grid", label: "Grid" },
-  { key: "readout", label: "Readout" },
-  { key: "ripples", label: "Click ripples" },
-];
-
-const CONTROLS: ScrubberDef<keyof MagnifyValues>[] = [
-  { key: "size", label: "Size", min: 60, max: 260, step: 4, decimals: 0 },
-  { key: "zoom", label: "Zoom", min: 1, max: 4, step: 0.05, decimals: 2 },
-  {
-    key: "follow",
-    label: "Follow",
-    min: 0.02,
-    max: 1,
-    step: 0.02,
-    decimals: 2,
-  },
-  { key: "hud", label: "HUD", min: 0, max: 1, step: 0.02, decimals: 2 },
-  {
-    key: "aberration",
-    label: "Aberration",
-    min: 0,
-    max: 3,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "haze", label: "Haze", min: 0, max: 1, step: 0.02, decimals: 2 },
-  {
-    key: "rippleSpeed",
-    label: "Ripple speed",
+const CONTROLS = {
+  color: color("Accent", "#cccccc"),
+  ring: toggle("Ring", true),
+  crosshair: toggle("Crosshair", true),
+  ticks: toggle("Ticks", true),
+  brackets: toggle("Brackets", true),
+  dot: toggle("Center dot", true),
+  grid: toggle("Grid", false),
+  readout: toggle("Readout", true),
+  ripples: toggle("Click ripples", true),
+  size: scrub("Size", 140, { min: 60, max: 260, step: 4, decimals: 0 }),
+  zoom: scrub("Zoom", 1.5, { min: 1, max: 4, step: 0.05 }),
+  follow: scrub("Follow", 0.25, { min: 0.02, max: 1, step: 0.02 }),
+  hud: scrub("HUD", 0.8, { min: 0, max: 1, step: 0.02 }),
+  aberration: scrub("Aberration", 0.8, { min: 0, max: 3, step: 0.05 }),
+  haze: scrub("Haze", 0.2, { min: 0, max: 1, step: 0.02 }),
+  rippleSpeed: scrub("Ripple speed", 900, {
     min: 200,
     max: 2400,
     step: 50,
     decimals: 0,
-  },
-  {
-    key: "rippleWidth",
-    label: "Ripple width",
+  }),
+  rippleWidth: scrub("Ripple width", 2, {
     min: 0.5,
     max: 24,
     step: 0.5,
     decimals: 1,
-  },
-  {
-    key: "rippleBendWidth",
-    label: "Bend width",
+  }),
+  rippleBendWidth: scrub("Bend width", 100, {
     min: 10,
     max: 240,
     step: 5,
     decimals: 0,
-  },
-  {
-    key: "rippleBend",
-    label: "Ripple bend",
+  }),
+  rippleBend: scrub("Ripple bend", 20, {
     min: 0,
     max: 120,
     step: 2,
     decimals: 0,
-  },
-  {
-    key: "rippleGlow",
-    label: "Ripple glow",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-];
+  }),
+  rippleGlow: scrub("Ripple glow", 1, { min: 0, max: 2, step: 0.05 }),
+};
 
 export function MagnifyDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<MagnifyValues>(DEFAULT_VALUES);
-  const [toggles, setToggles] = useState<MagnifyToggles>(DEFAULT_TOGGLES);
-  const [color, setColor] = useState(DEFAULT_COLOR);
+  const controls = useDemoControls(CONTROLS);
   const setContentEl = useDemoScrollbarGutter();
 
-  const isDefault =
-    color === DEFAULT_COLOR &&
-    valuesAreDefault(values, DEFAULT_VALUES) &&
-    TOGGLES.every(({ key }) => toggles[key] === DEFAULT_TOGGLES[key]);
+  const {
+    color,
+    ring,
+    crosshair,
+    ticks,
+    brackets,
+    dot,
+    grid,
+    readout,
+    ripples,
+    ...values
+  } = controls.values;
+  const toggles = {
+    ring,
+    crosshair,
+    ticks,
+    brackets,
+    dot,
+    grid,
+    readout,
+    ripples,
+  };
 
   return (
     <>
@@ -182,32 +112,8 @@ export function MagnifyDemo({ children }: { children: ReactNode }) {
           component: "Magnify",
           props: { ...values, ...toggles, color: hexToRgb(color) },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setToggles(DEFAULT_TOGGLES);
-          setColor(DEFAULT_COLOR);
-        }}
-      >
-        <ColorRow label="Accent" value={color} onValueChange={setColor} />
-        {TOGGLES.map(({ key, label }) => (
-          <SwitchRow
-            key={key}
-            label={label}
-            checked={toggles[key]}
-            onCheckedChange={(checked) =>
-              setToggles((prev) => ({ ...prev, [key]: checked }))
-            }
-          />
-        ))}
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

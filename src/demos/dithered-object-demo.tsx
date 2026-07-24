@@ -5,37 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 
 import {
-  ColorRow,
-  DemoControls,
-  ScrubberRows,
-  SwitchRow,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+  color,
+  custom,
+  scrub,
+  toggle,
+} from "@/components/demos/control-schema";
+import { ColorRow, DemoControls } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { DitheredObject } from "@/lib/DitheredObject/DitheredObject";
-
-type DitheredObjectValues = {
-  gridSize: number;
-  pixelSizeRatio: number;
-  environmentIntensity: number;
-  roughness: number;
-  scale: number;
-  xOffset: number;
-  yOffset: number;
-  floatIntensity: number;
-  rotationIntensity: number;
-  floatSpeed: number;
-  fov: number;
-  cameraDistance: number;
-};
-
-type DitheredObjectToggles = {
-  grayscale: boolean;
-  invert: boolean;
-  dither: boolean;
-  autoRotate: boolean;
-  zoom: boolean;
-};
 
 const DEFAULT_MODEL =
   "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
@@ -43,138 +20,72 @@ const DEFAULT_HIGHLIGHT = "#066aff";
 const LIGHT_BACKGROUND = "#ffffff";
 const DARK_BACKGROUND = "#0a0a0a";
 
-const DEFAULT_VALUES: DitheredObjectValues = {
-  gridSize: 4,
-  pixelSizeRatio: 1,
-  environmentIntensity: 0.1,
-  roughness: 0.15,
-  scale: 3,
-  xOffset: 0,
-  yOffset: 0,
-  floatIntensity: 2,
-  rotationIntensity: 1,
-  floatSpeed: 2,
-  fov: 65,
-  cameraDistance: 4.2,
-};
-
-const DEFAULT_TOGGLES: DitheredObjectToggles = {
-  grayscale: true,
-  invert: false,
-  dither: true,
-  autoRotate: false,
-  zoom: false,
-};
-
-const CONTROLS: ScrubberDef<keyof DitheredObjectValues>[] = [
-  {
-    key: "gridSize",
-    label: "Grid size",
-    min: 1,
-    max: 20,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "pixelSizeRatio",
-    label: "Pixelation",
+const CONTROLS = {
+  src: custom(DEFAULT_MODEL),
+  dither: toggle("Dither", true),
+  grayscale: toggle("Grayscale", true),
+  invert: toggle("Invert", false),
+  autoRotate: toggle("Auto rotate", false),
+  zoom: toggle("Scroll zoom", false),
+  gridSize: scrub("Grid size", 4, { min: 1, max: 20, step: 1, decimals: 0 }),
+  pixelSizeRatio: scrub("Pixelation", 1, {
     min: 1,
     max: 10,
     step: 1,
     decimals: 0,
-  },
-  {
-    key: "environmentIntensity",
-    label: "Environment",
+  }),
+  environmentIntensity: scrub("Environment", 0.1, {
     min: 0,
     max: 5,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "roughness",
-    label: "Roughness",
-    min: 0,
-    max: 1,
-    step: 0.01,
-    decimals: 2,
-  },
-  { key: "scale", label: "Scale", min: 0.5, max: 6, step: 0.1, decimals: 1 },
-  {
-    key: "xOffset",
-    label: "X offset",
-    min: -3,
-    max: 3,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "yOffset",
-    label: "Y offset",
-    min: -3,
-    max: 3,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "floatIntensity",
-    label: "Float",
-    min: 0,
-    max: 6,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "rotationIntensity",
-    label: "Rocking",
+  }),
+  roughness: scrub("Roughness", 0.15, { min: 0, max: 1, step: 0.01 }),
+  scale: scrub("Scale", 3, { min: 0.5, max: 6, step: 0.1, decimals: 1 }),
+  xOffset: scrub("X offset", 0, { min: -3, max: 3, step: 0.1, decimals: 1 }),
+  yOffset: scrub("Y offset", 0, { min: -3, max: 3, step: 0.1, decimals: 1 }),
+  floatIntensity: scrub("Float", 2, { min: 0, max: 6, step: 0.1, decimals: 1 }),
+  rotationIntensity: scrub("Rocking", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "floatSpeed",
-    label: "Float speed",
+  }),
+  floatSpeed: scrub("Float speed", 2, {
     min: 0,
     max: 8,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "fov",
-    label: "Field of view",
-    min: 20,
-    max: 100,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "cameraDistance",
-    label: "Camera distance",
+  }),
+  fov: scrub("Field of view", 65, { min: 20, max: 100, step: 1, decimals: 0 }),
+  cameraDistance: scrub("Camera distance", 4.2, {
     min: 2,
     max: 10,
     step: 0.1,
     decimals: 1,
-  },
-];
-
-const TOGGLES: { key: keyof DitheredObjectToggles; label: string }[] = [
-  { key: "dither", label: "Dither" },
-  { key: "grayscale", label: "Grayscale" },
-  { key: "invert", label: "Invert" },
-  { key: "autoRotate", label: "Auto rotate" },
-  { key: "zoom", label: "Scroll zoom" },
-];
+  }),
+  background: custom(""),
+  highlight: color("Highlight", DEFAULT_HIGHLIGHT),
+};
 
 export function DitheredObjectDemo() {
   const { resolvedTheme } = useTheme();
-  const [values, setValues] = useState<DitheredObjectValues>(DEFAULT_VALUES);
-  const [toggles, setToggles] =
-    useState<DitheredObjectToggles>(DEFAULT_TOGGLES);
-  const [background, setBackground] = useState<string | null>(null);
-  const [highlight, setHighlight] = useState(DEFAULT_HIGHLIGHT);
-  const [src, setSrc] = useState(DEFAULT_MODEL);
-  const [urlDraft, setUrlDraft] = useState(DEFAULT_MODEL);
+  const controls = useDemoControls(CONTROLS);
+  const { setValue } = controls;
+  const {
+    background: backgroundValue,
+    highlight,
+    src,
+    grayscale,
+    invert,
+    dither,
+    autoRotate,
+    zoom,
+    ...values
+  } = controls.values;
+  const background = backgroundValue === "" ? null : backgroundValue;
+  const toggles = { grayscale, invert, dither, autoRotate, zoom };
+  const [urlDraft, setUrlDraft] = useState(src);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -190,7 +101,7 @@ export function DitheredObjectDemo() {
   const applySrc = (next: string) => {
     if (!next || next === src) return;
     setStatus("loading");
-    setSrc(next);
+    setValue("src", next);
   };
 
   const applyUrl = () => {
@@ -213,13 +124,6 @@ export function DitheredObjectDemo() {
   const swatchBackground =
     background ??
     (resolvedTheme === "dark" ? DARK_BACKGROUND : LIGHT_BACKGROUND);
-
-  const isDefault =
-    background === null &&
-    highlight === DEFAULT_HIGHLIGHT &&
-    src === DEFAULT_MODEL &&
-    valuesAreDefault(values, DEFAULT_VALUES) &&
-    valuesAreDefault(toggles, DEFAULT_TOGGLES);
 
   return (
     <>
@@ -251,87 +155,63 @@ export function DitheredObjectDemo() {
           component: "DitheredObject",
           props: { src, ...values, ...toggles, highlight },
         }}
-        isDefault={isDefault}
+        controls={controls}
         portal
         onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setToggles(DEFAULT_TOGGLES);
-          setBackground(null);
-          setHighlight(DEFAULT_HIGHLIGHT);
           setUrlDraft(DEFAULT_MODEL);
           if (objectUrlRef.current) {
             URL.revokeObjectURL(objectUrlRef.current);
             objectUrlRef.current = null;
           }
-          applySrc(DEFAULT_MODEL);
+          if (src !== DEFAULT_MODEL) setStatus("loading");
         }}
-      >
-        <div className="flex w-full shrink-0 items-center gap-1.5">
-          <input
-            type="text"
-            value={urlDraft}
-            onChange={(e) => setUrlDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") applyUrl();
-            }}
-            onBlur={applyUrl}
-            placeholder="Model URL (.glb / .gltf)"
-            aria-label="Model URL"
-            spellCheck={false}
-            className="h-8 w-full min-w-0 rounded-lg bg-muted/60 px-3 text-[12.5px] font-medium text-foreground/90 outline-none transition-colors placeholder:text-muted-foreground hover:bg-muted/80 focus:bg-muted/80"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Open a model file"
-            title="Open a model file"
-            className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
-          >
-            <FileUp aria-hidden className="size-3.5" />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) applyFile(file);
-              e.target.value = "";
-            }}
-          />
-        </div>
-
-        {TOGGLES.map((toggle) => (
-          <SwitchRow
-            key={toggle.key}
-            label={toggle.label}
-            checked={toggles[toggle.key]}
-            onCheckedChange={(checked) =>
-              setToggles((prev) => ({ ...prev, [toggle.key]: checked }))
-            }
-          />
-        ))}
-
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-
-        <ColorRow
-          label="Background"
-          value={swatchBackground}
-          onValueChange={setBackground}
-        />
-        <ColorRow
-          label="Highlight"
-          value={highlight}
-          onValueChange={setHighlight}
-        />
-      </DemoControls>
+        rows={{
+          src: (
+            <div className="flex w-full shrink-0 items-center gap-1.5">
+              <input
+                type="text"
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") applyUrl();
+                }}
+                onBlur={applyUrl}
+                placeholder="Model URL (.glb / .gltf)"
+                aria-label="Model URL"
+                spellCheck={false}
+                className="h-8 w-full min-w-0 rounded-lg bg-muted/60 px-3 text-[12.5px] font-medium text-foreground/90 outline-none transition-colors placeholder:text-muted-foreground hover:bg-muted/80 focus:bg-muted/80"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Open a model file"
+                title="Open a model file"
+                className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+              >
+                <FileUp aria-hidden className="size-3.5" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) applyFile(file);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          ),
+          background: (
+            <ColorRow
+              label="Background"
+              value={swatchBackground}
+              onValueChange={(next) => setValue("background", next)}
+            />
+          ),
+        }}
+      />
     </>
   );
 }

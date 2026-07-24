@@ -3,14 +3,8 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 
-import {
-  ColorRow,
-  DemoControls,
-  ScrubberRows,
-  SwitchRow,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { color, scrub, toggle } from "@/components/demos/control-schema";
+import { DemoControls } from "@/components/demos/demo-controls";
 import {
   EntryPage,
   HERO_BLEED_CLASS,
@@ -19,145 +13,62 @@ import {
   type EntryStatus,
 } from "@/components/playground/entries/shared";
 import { MockSite } from "@/components/playground/mock-site";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { DitheredObject } from "@/lib/DitheredObject/DitheredObject";
-
-type Values = {
-  gridSize: number;
-  pixelSizeRatio: number;
-  environmentIntensity: number;
-  roughness: number;
-  scale: number;
-  floatIntensity: number;
-  rotationIntensity: number;
-  floatSpeed: number;
-  fov: number;
-  cameraDistance: number;
-};
-
-type Toggles = {
-  grayscale: boolean;
-  invert: boolean;
-  dither: boolean;
-  autoRotate: boolean;
-};
 
 const MODEL_URL = "/assets/models/bolt.glb";
 const DEFAULT_HIGHLIGHT = "#066aff";
 
-const DEFAULT_VALUES: Values = {
-  gridSize: 4,
-  pixelSizeRatio: 1,
-  environmentIntensity: 0.1,
-  roughness: 0.15,
-  scale: 3,
-  floatIntensity: 2,
-  rotationIntensity: 1,
-  floatSpeed: 2,
-  fov: 65,
-  cameraDistance: 4.2,
-};
-
-const DEFAULT_TOGGLES: Toggles = {
-  grayscale: true,
-  invert: false,
-  dither: true,
-  autoRotate: false,
-};
-
-const CONTROLS: ScrubberDef<keyof Values>[] = [
-  {
-    key: "gridSize",
-    label: "Grid size",
-    min: 1,
-    max: 20,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "pixelSizeRatio",
-    label: "Pixelation",
+const CONTROLS = {
+  dither: toggle("Dither", true),
+  grayscale: toggle("Grayscale", true),
+  invert: toggle("Invert", false),
+  autoRotate: toggle("Auto rotate", false),
+  gridSize: scrub("Grid size", 4, { min: 1, max: 20, step: 1, decimals: 0 }),
+  pixelSizeRatio: scrub("Pixelation", 1, {
     min: 1,
     max: 10,
     step: 1,
     decimals: 0,
-  },
-  {
-    key: "environmentIntensity",
-    label: "Environment",
+  }),
+  environmentIntensity: scrub("Environment", 0.1, {
     min: 0,
     max: 5,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "roughness",
-    label: "Roughness",
-    min: 0,
-    max: 1,
-    step: 0.01,
-    decimals: 2,
-  },
-  { key: "scale", label: "Scale", min: 0.5, max: 6, step: 0.1, decimals: 1 },
-  {
-    key: "floatIntensity",
-    label: "Float",
-    min: 0,
-    max: 6,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "rotationIntensity",
-    label: "Rocking",
+  }),
+  roughness: scrub("Roughness", 0.15, { min: 0, max: 1, step: 0.01 }),
+  scale: scrub("Scale", 3, { min: 0.5, max: 6, step: 0.1, decimals: 1 }),
+  floatIntensity: scrub("Float", 2, { min: 0, max: 6, step: 0.1, decimals: 1 }),
+  rotationIntensity: scrub("Rocking", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "floatSpeed",
-    label: "Float speed",
+  }),
+  floatSpeed: scrub("Float speed", 2, {
     min: 0,
     max: 8,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "fov",
-    label: "Field of view",
-    min: 20,
-    max: 100,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "cameraDistance",
-    label: "Camera distance",
+  }),
+  fov: scrub("Field of view", 65, { min: 20, max: 100, step: 1, decimals: 0 }),
+  cameraDistance: scrub("Camera distance", 4.2, {
     min: 2,
     max: 10,
     step: 0.1,
     decimals: 1,
-  },
-];
-
-const TOGGLES: { key: keyof Toggles; label: string }[] = [
-  { key: "dither", label: "Dither" },
-  { key: "grayscale", label: "Grayscale" },
-  { key: "invert", label: "Invert" },
-  { key: "autoRotate", label: "Auto rotate" },
-];
+  }),
+  highlight: color("Highlight", DEFAULT_HIGHLIGHT),
+};
 
 export function DitheredObjectEntry() {
   const { resolvedTheme } = useTheme();
-  const [values, setValues] = useState<Values>(DEFAULT_VALUES);
-  const [toggles, setToggles] = useState<Toggles>(DEFAULT_TOGGLES);
-  const [highlight, setHighlight] = useState(DEFAULT_HIGHLIGHT);
+  const controls = useDemoControls(CONTROLS);
+  const { highlight, grayscale, invert, dither, autoRotate, ...values } =
+    controls.values;
+  const toggles = { grayscale, invert, dither, autoRotate };
   const [status, setStatus] = useState<EntryStatus>("loading");
-
-  const isDefault =
-    highlight === DEFAULT_HIGHLIGHT &&
-    valuesAreDefault(values, DEFAULT_VALUES) &&
-    valuesAreDefault(toggles, DEFAULT_TOGGLES);
 
   return (
     <>
@@ -197,36 +108,8 @@ export function DitheredObjectEntry() {
           component: "DitheredObject",
           props: { src: MODEL_URL, ...values, ...toggles, highlight },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setToggles(DEFAULT_TOGGLES);
-          setHighlight(DEFAULT_HIGHLIGHT);
-        }}
-      >
-        {TOGGLES.map((toggle) => (
-          <SwitchRow
-            key={toggle.key}
-            label={toggle.label}
-            checked={toggles[toggle.key]}
-            onCheckedChange={(checked) =>
-              setToggles((prev) => ({ ...prev, [toggle.key]: checked }))
-            }
-          />
-        ))}
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-        <ColorRow
-          label="Highlight"
-          value={highlight}
-          onValueChange={setHighlight}
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

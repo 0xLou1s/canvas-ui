@@ -1,121 +1,50 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
+import { color, scrub } from "@/components/demos/control-schema";
 import {
-  ColorRow,
   DemoControls,
-  ScrubberRows,
   useDemoScrollbarGutter,
-  valuesAreDefault,
-  type ScrubberDef,
 } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Clouds } from "@/lib/Clouds/Clouds";
 
-type CloudsValues = {
-  scale: number;
-  speed: number;
-  cover: number;
-  density: number;
-  shading: number;
-  opacity: number;
-  shadow: number;
-  shadowOffsetX: number;
-  shadowOffsetY: number;
-  shadowSoftness: number;
-  wind: number;
-  windRadius: number;
-  refraction: number;
-  fogBlur: number;
-  quality: number;
-};
+const AUTO_COLOR = "auto";
 
-const DEFAULT_VALUES: CloudsValues = {
-  scale: 1,
-  speed: 0.6,
-  cover: 0.1,
-  density: 2.5,
-  shading: 0.1,
-  opacity: 0.64,
-  shadow: 0.06,
-  shadowOffsetX: 200,
-  shadowOffsetY: -10,
-  shadowSoftness: 1,
-  wind: 0.6,
-  windRadius: 350,
-  refraction: 0,
-  fogBlur: 0,
-  quality: 1,
-};
-
-const CONTROLS: ScrubberDef<keyof CloudsValues>[] = [
-  { key: "scale", label: "Scale", min: 0.3, max: 3, step: 0.05, decimals: 2 },
-  { key: "speed", label: "Speed", min: 0, max: 5, step: 0.1, decimals: 1 },
-  { key: "cover", label: "Cover", min: 0, max: 1, step: 0.02, decimals: 2 },
-  { key: "density", label: "Density", min: 0, max: 16, step: 0.5, decimals: 1 },
-  { key: "shading", label: "Shading", min: 0, max: 1, step: 0.02, decimals: 2 },
-  { key: "opacity", label: "Opacity", min: 0, max: 1, step: 0.02, decimals: 2 },
-  { key: "shadow", label: "Shadow", min: 0, max: 1, step: 0.02, decimals: 2 },
-  {
-    key: "shadowOffsetX",
-    label: "Shadow X",
+const CONTROLS = {
+  color: color("Color", AUTO_COLOR, { auto: { label: "Auto" } }),
+  scale: scrub("Scale", 1, { min: 0.3, max: 3, step: 0.05 }),
+  speed: scrub("Speed", 0.6, { min: 0, max: 5, step: 0.1, decimals: 1 }),
+  cover: scrub("Cover", 0.1, { min: 0, max: 1, step: 0.02 }),
+  density: scrub("Density", 2.5, { min: 0, max: 16, step: 0.5, decimals: 1 }),
+  shading: scrub("Shading", 0.1, { min: 0, max: 1, step: 0.02 }),
+  opacity: scrub("Opacity", 0.64, { min: 0, max: 1, step: 0.02 }),
+  shadow: scrub("Shadow", 0.06, { min: 0, max: 1, step: 0.02 }),
+  shadowOffsetX: scrub("Shadow X", 200, {
     min: -300,
     max: 300,
     step: 10,
     decimals: 0,
-  },
-  {
-    key: "shadowOffsetY",
-    label: "Shadow Y",
+  }),
+  shadowOffsetY: scrub("Shadow Y", -10, {
     min: -300,
     max: 300,
     step: 10,
     decimals: 0,
-  },
-  {
-    key: "shadowSoftness",
-    label: "Softness",
-    min: 0,
-    max: 1,
-    step: 0.02,
-    decimals: 2,
-  },
-  { key: "wind", label: "Wind", min: 0, max: 1, step: 0.02, decimals: 2 },
-  {
-    key: "windRadius",
-    label: "Wind radius",
+  }),
+  shadowSoftness: scrub("Softness", 1, { min: 0, max: 1, step: 0.02 }),
+  wind: scrub("Wind", 0.6, { min: 0, max: 1, step: 0.02 }),
+  windRadius: scrub("Wind radius", 350, {
     min: 40,
     max: 400,
     step: 10,
     decimals: 0,
-  },
-  {
-    key: "refraction",
-    label: "Refraction",
-    min: 0,
-    max: 80,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "fogBlur",
-    label: "Fog blur",
-    min: 0,
-    max: 1,
-    step: 0.02,
-    decimals: 2,
-  },
-  {
-    key: "quality",
-    label: "Quality",
-    min: 0.2,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-];
-
-const AUTO_COLOR = "auto";
+  }),
+  refraction: scrub("Refraction", 0, { min: 0, max: 80, step: 1, decimals: 0 }),
+  fogBlur: scrub("Fog blur", 0, { min: 0, max: 1, step: 0.02 }),
+  quality: scrub("Quality", 1, { min: 0.2, max: 1, step: 0.05 }),
+};
 
 function hexToRgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
@@ -127,12 +56,10 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 export function CloudsDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<CloudsValues>(DEFAULT_VALUES);
-  const [color, setColor] = useState(AUTO_COLOR);
+  const controls = useDemoControls(CONTROLS);
   const setContentEl = useDemoScrollbarGutter();
 
-  const isDefault =
-    color === AUTO_COLOR && valuesAreDefault(values, DEFAULT_VALUES);
+  const { color, ...values } = controls.values;
 
   return (
     <>
@@ -159,29 +86,8 @@ export function CloudsDemo({ children }: { children: ReactNode }) {
             color: color === AUTO_COLOR ? "auto" : hexToRgb(color),
           },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setColor(AUTO_COLOR);
-        }}
-      >
-        <ColorRow
-          label="Color"
-          value={color === AUTO_COLOR ? "#ffffff" : color}
-          onValueChange={setColor}
-          displayValue={color === AUTO_COLOR ? "Auto" : undefined}
-          onReset={
-            color !== AUTO_COLOR ? () => setColor(AUTO_COLOR) : undefined
-          }
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

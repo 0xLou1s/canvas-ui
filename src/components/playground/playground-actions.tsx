@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Link as LinkIcon,
   Share2,
+  SlidersHorizontal,
   Sparkles,
   SquareCode,
   Terminal,
@@ -57,6 +58,8 @@ interface MenuItem {
   label: string;
   icon: IconComponent;
   action: { copy: () => string } | { open: () => string };
+  /** Evaluated when the menu opens; return true to omit the item. */
+  hidden?: () => boolean;
 }
 
 function ActionMenu({
@@ -162,6 +165,7 @@ function ActionMenu({
             className="absolute inset-x-0 top-full z-50 mt-1.5 origin-top rounded-xl border border-border/70 bg-background p-1 shadow-lg"
           >
             {items.map((item) => {
+              if (item.hidden?.()) return null;
               const copied = "copy" in item.action && copiedId === item.id;
               const Icon = copied ? Check : item.icon;
               return (
@@ -197,6 +201,15 @@ export function PlaygroundActions({
   const [frameworkId] = usePreference("framework", "react", FRAMEWORK_IDS);
 
   const shareUrl = `${SITE_URL}/playground?c=${slug}`;
+  // Control tweaks are persisted to the query string, so the current URL is
+  // the shareable artifact for the exact configuration on screen.
+  const customizedShareUrl = () =>
+    `${SITE_URL}/playground${window.location.search || `?c=${slug}`}`;
+  const hasCustomizations = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("c");
+    return params.size > 0;
+  };
   const installCommand = () =>
     buildInstallCommand(managerId, slug, frameworkId);
 
@@ -278,9 +291,16 @@ export function PlaygroundActions({
         items={[
           {
             id: "url",
-            label: "Copy URL",
+            label: "Copy link",
             icon: LinkIcon,
             action: { copy: () => shareUrl },
+          },
+          {
+            id: "custom-url",
+            label: "Copy custom link",
+            icon: SlidersHorizontal,
+            action: { copy: customizedShareUrl },
+            hidden: () => !hasCustomizations(),
           },
           {
             id: "x",

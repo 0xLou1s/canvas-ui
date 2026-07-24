@@ -1,43 +1,32 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Check, Link as LinkIcon, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { play } from "cuelume";
 import {
   createContext,
+  Fragment,
   useContext,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 
+import type { ControlSchema } from "@/components/demos/control-schema";
 import {
   publishDemoSnippet,
   type DemoSnippet,
 } from "@/components/demos/snippet-store";
 import { Scrubber } from "@/components/docs/scrubber";
+import type { DemoControlsHandle } from "@/hooks/use-demo-controls";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
 const emptySubscribe = () => () => {};
-
-export interface ScrubberDef<K extends string = string> {
-  key: K;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  decimals: number;
-}
-
-export function valuesAreDefault<T extends Record<string, unknown>>(
-  values: T,
-  defaults: T,
-): boolean {
-  return Object.keys(defaults).every((key) => values[key] === defaults[key]);
-}
 
 export function useDemoScrollbarGutter() {
   const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
@@ -174,12 +163,60 @@ export const DemoControlsTargetContext = createContext<HTMLElement | null>(
   null,
 );
 
-export interface DemoControlsProps {
+/**
+ * Copies a link to the current configuration. Control values live in the
+ * URL, so the address bar is always the shareable artifact — this simply
+ * makes that discoverable from the controls panel.
+ */
+function ShareLinkButton() {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    play("bloom");
+    setCopied(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 1200);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label="Copy link to this configuration"
+      title="Copy a link to this exact configuration"
+      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {copied ? (
+        <Check aria-hidden className="size-3" />
+      ) : (
+        <LinkIcon aria-hidden className="size-3" />
+      )}
+      {copied ? "Copied" : "Share"}
+    </button>
+  );
+}
+
+export interface DemoControlsProps<S extends ControlSchema> {
   /** Panel heading, e.g. "Peel controls". */
   title: string;
-  /** Disables the Reset button when nothing was changed. */
-  isDefault: boolean;
-  onReset: () => void;
+  /** Schema-backed control state from `useDemoControls`. */
+  controls: DemoControlsHandle<S>;
+  /**
+   * Replace the generated row for specific schema keys with bespoke UI,
+   * rendered at the key's schema position (e.g. a model loader for a
+   * `custom` control, or a color row with a theme-derived swatch).
+   */
+  rows?: Partial<Record<keyof S & string, ReactNode>>;
+  /** Extra cleanup after the URL state resets (ephemeral local state). */
+  onReset?: () => void;
   /**
    * Portal the widget to document.body. Use for boxed demos inside docs
    * pages, where an animated ancestor transform would otherwise become the
@@ -191,18 +228,98 @@ export interface DemoControlsProps {
    * so its copy actions can emit the component exactly as configured.
    */
   snippet?: DemoSnippet;
-  /** Control rows: scrubbers, switches, radios, color pickers. */
-  children: ReactNode;
 }
 
-export function DemoControls({
+/** Renders a schema's control rows in declaration order. */
+function SchemaRows<S extends ControlSchema>({
+  controls,
+  rows,
+}: {
+  controls: DemoControlsHandle<S>;
+  rows?: Partial<Record<keyof S & string, ReactNode>>;
+}) {
+  // The panel iterates the schema with string keys; narrowing back to the
+  // schema's own key/value pairs is safe by construction.
+  const set = controls.setValue as (key: string, value: unknown) => void;
+  const values = controls.values as Record<string, string | number | boolean>;
+
+  return (
+    <>
+      {Object.entries(controls.schema).map(([key, def]) => {
+        if (def.when && !def.when(values)) return null;
+
+        const override = rows?.[key as keyof S & string];
+        if (override !== undefined) {
+          return <Fragment key={key}>{override}</Fragment>;
+        }
+
+        switch (def.kind) {
+          case "scrub":
+            return (
+              <Scrubber
+                key={key}
+                label={def.label}
+                min={def.min}
+                max={def.max}
+                step={def.step}
+                decimals={def.decimals}
+                value={values[key] as number}
+                onValueChange={(next) => set(key, next)}
+              />
+            );
+          case "toggle":
+            return (
+              <SwitchRow
+                key={key}
+                label={def.label}
+                checked={values[key] as boolean}
+                onCheckedChange={(next) => set(key, next)}
+              />
+            );
+          case "radio":
+            return (
+              <RadioRow
+                key={key}
+                label={def.label}
+                options={def.options}
+                value={values[key] as string}
+                onValueChange={(next) => set(key, next)}
+              />
+            );
+          case "color": {
+            const value = values[key] as string;
+            const auto = def.auto !== undefined && value === def.defaultValue;
+            return (
+              <ColorRow
+                key={key}
+                label={def.label}
+                value={auto && def.auto ? def.auto.swatch : value}
+                displayValue={auto && def.auto ? def.auto.label : undefined}
+                onValueChange={(next) => set(key, next)}
+                onReset={
+                  value !== def.defaultValue
+                    ? () => set(key, def.defaultValue)
+                    : undefined
+                }
+              />
+            );
+          }
+          case "custom":
+            return null;
+        }
+      })}
+    </>
+  );
+}
+
+export function DemoControls<S extends ControlSchema>({
   title,
-  isDefault,
+  controls,
+  rows,
   onReset,
   portal = false,
   snippet,
-  children,
-}: DemoControlsProps) {
+}: DemoControlsProps<S>) {
   const shouldReduceMotion = useReducedMotion();
   const inlineTarget = useContext(DemoControlsTargetContext);
   const [open, setOpen] = useState(false);
@@ -211,6 +328,12 @@ export function DemoControls({
     () => true,
     () => false,
   );
+
+  const { isDefault } = controls;
+  const handleReset = () => {
+    controls.reset();
+    onReset?.();
+  };
 
   useEffect(() => {
     if (!snippet) return;
@@ -228,7 +351,7 @@ export function DemoControls({
           </p>
           <button
             type="button"
-            onClick={onReset}
+            onClick={handleReset}
             disabled={isDefault}
             className="inline-flex cursor-pointer items-center gap-1 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
           >
@@ -236,7 +359,9 @@ export function DemoControls({
             Reset
           </button>
         </div>
-        <div className="flex flex-col gap-1.5">{children}</div>
+        <div className="flex flex-col gap-1.5">
+          <SchemaRows controls={controls} rows={rows} />
+        </div>
       </div>,
       inlineTarget,
     );
@@ -267,17 +392,22 @@ export function DemoControls({
               <p className="text-[13px] font-semibold tracking-[-0.01em]">
                 {title}
               </p>
-              <button
-                type="button"
-                onClick={onReset}
-                disabled={isDefault}
-                className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
-              >
-                <RotateCcw aria-hidden className="size-3" />
-                Reset
-              </button>
+              <div className="flex items-center">
+                <ShareLinkButton />
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={isDefault}
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <RotateCcw aria-hidden className="size-3" />
+                  Reset
+                </button>
+              </div>
             </div>
-            <ScrollFade>{children}</ScrollFade>
+            <ScrollFade>
+              <SchemaRows controls={controls} rows={rows} />
+            </ScrollFade>
           </motion.div>
         )}
       </AnimatePresence>
@@ -299,33 +429,6 @@ export function DemoControls({
   );
 
   return portal ? createPortal(widget, document.body) : widget;
-}
-
-export function ScrubberRows<K extends string>({
-  controls,
-  values,
-  onChange,
-}: {
-  controls: ScrubberDef<K>[];
-  values: Record<K, number>;
-  onChange: (key: K, value: number) => void;
-}) {
-  return (
-    <>
-      {controls.map((control) => (
-        <Scrubber
-          key={control.key}
-          label={control.label}
-          min={control.min}
-          max={control.max}
-          step={control.step}
-          decimals={control.decimals}
-          value={values[control.key]}
-          onValueChange={(next) => onChange(control.key, next)}
-        />
-      ))}
-    </>
-  );
 }
 
 export function SwitchRow({

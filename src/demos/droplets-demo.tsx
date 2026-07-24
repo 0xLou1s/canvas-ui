@@ -1,149 +1,56 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
+import { color, scrub } from "@/components/demos/control-schema";
 import {
-  ColorRow,
   DemoControls,
-  ScrubberRows,
   useDemoScrollbarGutter,
-  valuesAreDefault,
-  type ScrubberDef,
 } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Droplets } from "@/lib/Droplets/Droplets";
 
-type DropletsValues = {
-  intensity: number;
-  speed: number;
-  scale: number;
-  dropWidth: number;
-  dropLength: number;
-  refraction: number;
-  blur: number;
-  vignette: number;
-  fallSpeed: number;
-  wiggle: number;
-  staticDrops: number;
-  interactionRadius: number;
-  interactionStrength: number;
-  interactionDistortion: number;
-  tintStrength: number;
-};
-
-const DEFAULT_VALUES: DropletsValues = {
-  intensity: 0.5,
-  speed: 1,
-  scale: 0.4,
-  dropWidth: 1,
-  dropLength: 1,
-  refraction: 0.2,
-  blur: 0,
-  vignette: 0,
-  fallSpeed: 1,
-  wiggle: 1,
-  staticDrops: 0.2,
-  interactionRadius: 0.3,
-  interactionStrength: 0.6,
-  interactionDistortion: 3,
-  tintStrength: 0,
-};
-
-const CONTROLS: ScrubberDef<keyof DropletsValues>[] = [
-  {
-    key: "intensity",
-    label: "Intensity",
-    min: 0,
-    max: 1.25,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "speed", label: "Speed", min: 0, max: 3, step: 0.1, decimals: 1 },
-  { key: "scale", label: "Scale", min: 0.4, max: 2.5, step: 0.05, decimals: 2 },
-  {
-    key: "dropWidth",
-    label: "Drop width",
-    min: 0.4,
-    max: 1.5,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "dropLength",
-    label: "Drop length",
-    min: 0.4,
-    max: 2.5,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "refraction",
-    label: "Refraction",
+const CONTROLS = {
+  intensity: scrub("Intensity", 0.5, { min: 0, max: 1.25, step: 0.05 }),
+  speed: scrub("Speed", 1, { min: 0, max: 3, step: 0.1, decimals: 1 }),
+  scale: scrub("Scale", 0.4, { min: 0.4, max: 2.5, step: 0.05 }),
+  dropWidth: scrub("Drop width", 1, { min: 0.4, max: 1.5, step: 0.05 }),
+  dropLength: scrub("Drop length", 1, { min: 0.4, max: 2.5, step: 0.05 }),
+  refraction: scrub("Refraction", 0.2, {
     min: 0,
     max: 3,
     step: 0.1,
     decimals: 1,
-  },
-  { key: "blur", label: "Blur", min: 0, max: 4, step: 0.1, decimals: 1 },
-  {
-    key: "vignette",
-    label: "Vignette",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "fallSpeed",
-    label: "Fall speed",
+  }),
+  blur: scrub("Blur", 0, { min: 0, max: 4, step: 0.1, decimals: 1 }),
+  vignette: scrub("Vignette", 0, { min: 0, max: 1, step: 0.05 }),
+  fallSpeed: scrub("Fall speed", 1, { min: 0, max: 3, step: 0.1, decimals: 1 }),
+  wiggle: scrub("Wiggle", 1, { min: 0, max: 2, step: 0.1, decimals: 1 }),
+  staticDrops: scrub("Static drops", 0.2, {
     min: 0,
     max: 3,
     step: 0.1,
     decimals: 1,
-  },
-  { key: "wiggle", label: "Wiggle", min: 0, max: 2, step: 0.1, decimals: 1 },
-  {
-    key: "staticDrops",
-    label: "Static drops",
-    min: 0,
-    max: 3,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "interactionRadius",
-    label: "Wipe radius",
+  }),
+  interactionRadius: scrub("Wipe radius", 0.3, {
     min: 0.02,
     max: 0.4,
     step: 0.01,
-    decimals: 2,
-  },
-  {
-    key: "interactionStrength",
-    label: "Wipe strength",
+  }),
+  interactionStrength: scrub("Wipe strength", 0.6, {
     min: 0,
     max: 1,
     step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "interactionDistortion",
-    label: "Wipe distort",
+  }),
+  interactionDistortion: scrub("Wipe distort", 3, {
     min: 0,
     max: 3,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "tintStrength",
-    label: "Tint strength",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-];
-
-const DEFAULT_TINT = "#8fb4ff";
+  }),
+  tintStrength: scrub("Tint strength", 0, { min: 0, max: 1, step: 0.05 }),
+  tint: color("Tint", "#8fb4ff"),
+};
 
 function hexToRgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
@@ -155,12 +62,10 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 export function DropletsDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<DropletsValues>(DEFAULT_VALUES);
-  const [tint, setTint] = useState(DEFAULT_TINT);
+  const controls = useDemoControls(CONTROLS);
   const setContentEl = useDemoScrollbarGutter();
 
-  const isDefault =
-    tint === DEFAULT_TINT && valuesAreDefault(values, DEFAULT_VALUES);
+  const { tint, ...values } = controls.values;
 
   return (
     <>
@@ -184,21 +89,8 @@ export function DropletsDemo({ children }: { children: ReactNode }) {
           component: "Droplets",
           props: { ...values, tint: hexToRgb(tint) },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setTint(DEFAULT_TINT);
-        }}
-      >
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-        <ColorRow label="Tint" value={tint} onValueChange={setTint} />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

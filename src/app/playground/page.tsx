@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { GitHubStars } from "@/components/common/github-stars";
 import { SearchButton, SearchDialog } from "@/components/common/site-search";
@@ -24,9 +23,7 @@ export default function PlaygroundPage() {
 
       <SearchDialog />
 
-      <Suspense fallback={null}>
-        <PlaygroundClient />
-      </Suspense>
+      <PlaygroundClient />
     </>
   );
 }

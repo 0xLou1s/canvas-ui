@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 
-import {
-  DemoControls,
-  ScrubberRows,
-  SwitchRow,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { scrub, toggle } from "@/components/demos/control-schema";
+import { DemoControls } from "@/components/demos/demo-controls";
 import {
   EntryPage,
   HERO_BLEED_CLASS,
@@ -18,144 +13,66 @@ import {
   type EntryStatus,
 } from "@/components/playground/entries/shared";
 import { MockSite } from "@/components/playground/mock-site";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { ParticleObject } from "@/lib/ParticleObject/ParticleObject";
-
-type Values = {
-  count: number;
-  size: number;
-  sizeVariance: number;
-  radius: number;
-  strength: number;
-  swirl: number;
-  spring: number;
-  damping: number;
-  drift: number;
-  scale: number;
-  floatIntensity: number;
-  rotationIntensity: number;
-  floatSpeed: number;
-  fov: number;
-  cameraDistance: number;
-};
-
-type Toggles = {
-  autoRotate: boolean;
-};
 
 const MODEL_URL = "/assets/models/bolt.glb";
 
-const DEFAULT_VALUES: Values = {
-  count: 14000,
-  size: 2.4,
-  sizeVariance: 0.6,
-  radius: 110,
-  strength: 1,
-  swirl: 0.6,
-  spring: 1,
-  damping: 0.35,
-  drift: 0.6,
-  scale: 3,
-  floatIntensity: 2,
-  rotationIntensity: 1,
-  floatSpeed: 2,
-  fov: 65,
-  cameraDistance: 4.2,
-};
-
-const DEFAULT_TOGGLES: Toggles = {
-  autoRotate: false,
-};
-
-const CONTROLS: ScrubberDef<keyof Values>[] = [
-  {
-    key: "count",
-    label: "Particles",
+const CONTROLS = {
+  autoRotate: toggle("Auto rotate", false),
+  count: scrub("Particles", 14000, {
     min: 1000,
     max: 60000,
     step: 1000,
     decimals: 0,
-  },
-  { key: "size", label: "Size", min: 0.5, max: 8, step: 0.1, decimals: 1 },
-  {
-    key: "sizeVariance",
-    label: "Variance",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "radius",
-    label: "Push radius",
+  }),
+  size: scrub("Size", 2.4, { min: 0.5, max: 8, step: 0.1, decimals: 1 }),
+  sizeVariance: scrub("Variance", 0.6, { min: 0, max: 1, step: 0.05 }),
+  radius: scrub("Push radius", 110, {
     min: 20,
     max: 320,
     step: 5,
     decimals: 0,
-  },
-  {
-    key: "strength",
-    label: "Push strength",
+  }),
+  strength: scrub("Push strength", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  { key: "swirl", label: "Swirl", min: 0, max: 2, step: 0.05, decimals: 2 },
-  { key: "spring", label: "Spring", min: 0.1, max: 4, step: 0.05, decimals: 2 },
-  { key: "damping", label: "Damping", min: 0, max: 1, step: 0.02, decimals: 2 },
-  { key: "drift", label: "Drift", min: 0, max: 3, step: 0.1, decimals: 1 },
-  { key: "scale", label: "Scale", min: 0.5, max: 6, step: 0.1, decimals: 1 },
-  {
-    key: "floatIntensity",
-    label: "Float",
-    min: 0,
-    max: 6,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "rotationIntensity",
-    label: "Rocking",
+  }),
+  swirl: scrub("Swirl", 0.6, { min: 0, max: 2, step: 0.05 }),
+  spring: scrub("Spring", 1, { min: 0.1, max: 4, step: 0.05 }),
+  damping: scrub("Damping", 0.35, { min: 0, max: 1, step: 0.02 }),
+  drift: scrub("Drift", 0.6, { min: 0, max: 3, step: 0.1, decimals: 1 }),
+  scale: scrub("Scale", 3, { min: 0.5, max: 6, step: 0.1, decimals: 1 }),
+  floatIntensity: scrub("Float", 2, { min: 0, max: 6, step: 0.1, decimals: 1 }),
+  rotationIntensity: scrub("Rocking", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "floatSpeed",
-    label: "Float speed",
+  }),
+  floatSpeed: scrub("Float speed", 2, {
     min: 0,
     max: 8,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "fov",
-    label: "Field of view",
-    min: 20,
-    max: 100,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "cameraDistance",
-    label: "Camera distance",
+  }),
+  fov: scrub("Field of view", 65, { min: 20, max: 100, step: 1, decimals: 0 }),
+  cameraDistance: scrub("Camera distance", 4.2, {
     min: 2,
     max: 10,
     step: 0.1,
     decimals: 1,
-  },
-];
+  }),
+};
 
 export function ParticleObjectEntry() {
   const { resolvedTheme } = useTheme();
-  const [values, setValues] = useState<Values>(DEFAULT_VALUES);
-  const [toggles, setToggles] = useState<Toggles>(DEFAULT_TOGGLES);
+  const controls = useDemoControls(CONTROLS);
+  const { autoRotate, ...values } = controls.values;
+  const toggles = { autoRotate };
   const [status, setStatus] = useState<EntryStatus>("loading");
-
-  const isDefault =
-    valuesAreDefault(values, DEFAULT_VALUES) &&
-    valuesAreDefault(toggles, DEFAULT_TOGGLES);
 
   return (
     <>
@@ -195,27 +112,8 @@ export function ParticleObjectEntry() {
           component: "ParticleObject",
           props: { src: MODEL_URL, ...values, ...toggles },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setToggles(DEFAULT_TOGGLES);
-        }}
-      >
-        <SwitchRow
-          label="Auto rotate"
-          checked={toggles.autoRotate}
-          onCheckedChange={(checked) =>
-            setToggles((prev) => ({ ...prev, autoRotate: checked }))
-          }
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

@@ -1,164 +1,60 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useTheme } from "next-themes";
 
+import { color, scrub } from "@/components/demos/control-schema";
 import {
   ColorRow,
   DemoControls,
-  ScrubberRows,
   useDemoScrollbarGutter,
-  valuesAreDefault,
-  type ScrubberDef,
 } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Shatter } from "@/lib/Shatter/Shatter";
-
-type ShatterValues = {
-  radius: number;
-  softness: number;
-  tileSize: number;
-  shards: number;
-  corner: number;
-  lift: number;
-  tilt: number;
-  scatter: number;
-  perspective: number;
-  shadow: number;
-  shading: number;
-  refraction: number;
-  dispersion: number;
-  floatSpeed: number;
-  strength: number;
-  baseStrength: number;
-  followSpeed: number;
-};
-
-const DEFAULT_VALUES: ShatterValues = {
-  radius: 0.4,
-  softness: 0.6,
-  tileSize: 125,
-  shards: 1,
-  corner: 0,
-  lift: 30,
-  tilt: 2,
-  scatter: 5,
-  perspective: 1500,
-  shadow: 0.5,
-  shading: 0.5,
-  refraction: 1.5,
-  dispersion: 0.3,
-  floatSpeed: 2,
-  strength: 1,
-  baseStrength: 0,
-  followSpeed: 3,
-};
 
 const LIGHT_GAP = "#ffffff";
 const DARK_GAP = "#0a0a0a";
 
-const CONTROLS: ScrubberDef<keyof ShatterValues>[] = [
-  {
-    key: "radius",
-    label: "Radius",
-    min: 0.1,
-    max: 0.8,
-    step: 0.01,
-    decimals: 2,
-  },
-  {
-    key: "softness",
-    label: "Softness",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "tileSize",
-    label: "Tile size",
+const CONTROLS = {
+  radius: scrub("Radius", 0.4, { min: 0.1, max: 0.8, step: 0.01 }),
+  softness: scrub("Softness", 0.6, { min: 0, max: 1, step: 0.05 }),
+  tileSize: scrub("Tile size", 125, {
     min: 40,
     max: 220,
     step: 5,
     decimals: 0,
-  },
-  {
-    key: "shards",
-    label: "Shards",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "corner", label: "Corner", min: 0, max: 30, step: 1, decimals: 0 },
-  { key: "lift", label: "Lift", min: 0, max: 120, step: 2, decimals: 0 },
-  { key: "tilt", label: "Tilt", min: 0, max: 3, step: 0.05, decimals: 2 },
-  { key: "scatter", label: "Scatter", min: 0, max: 30, step: 1, decimals: 0 },
-  {
-    key: "perspective",
-    label: "Perspective",
+  }),
+  shards: scrub("Shards", 1, { min: 0, max: 1, step: 0.05 }),
+  corner: scrub("Corner", 0, { min: 0, max: 30, step: 1, decimals: 0 }),
+  lift: scrub("Lift", 30, { min: 0, max: 120, step: 2, decimals: 0 }),
+  tilt: scrub("Tilt", 2, { min: 0, max: 3, step: 0.05 }),
+  scatter: scrub("Scatter", 5, { min: 0, max: 30, step: 1, decimals: 0 }),
+  perspective: scrub("Perspective", 1500, {
     min: 300,
     max: 2000,
     step: 50,
     decimals: 0,
-  },
-  { key: "shadow", label: "Shadow", min: 0, max: 2, step: 0.05, decimals: 2 },
-  {
-    key: "shading",
-    label: "Shading",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "refraction",
-    label: "Refraction",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "dispersion",
-    label: "Dispersion",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "floatSpeed",
-    label: "Float speed",
+  }),
+  shadow: scrub("Shadow", 0.5, { min: 0, max: 2, step: 0.05 }),
+  shading: scrub("Shading", 0.5, { min: 0, max: 2, step: 0.05 }),
+  refraction: scrub("Refraction", 1.5, { min: 0, max: 2, step: 0.05 }),
+  dispersion: scrub("Dispersion", 0.3, { min: 0, max: 1, step: 0.05 }),
+  floatSpeed: scrub("Float speed", 2, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "strength",
-    label: "Strength",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "baseStrength",
-    label: "Base strength",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "followSpeed",
-    label: "Follow speed",
+  }),
+  strength: scrub("Strength", 1, { min: 0, max: 1, step: 0.05 }),
+  baseStrength: scrub("Base strength", 0, { min: 0, max: 1, step: 0.05 }),
+  followSpeed: scrub("Follow speed", 3, {
     min: 1,
     max: 20,
     step: 0.5,
     decimals: 1,
-  },
-];
+  }),
+  gap: color("Gap color", "", { auto: { label: "Auto" } }),
+};
 
 function hexToRgb(hex: string): [number, number, number] {
   const value = hex.replace("#", "");
@@ -170,14 +66,15 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 export function ShatterDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<ShatterValues>(DEFAULT_VALUES);
-  const [gap, setGap] = useState<string | null>(null);
+  const controls = useDemoControls(CONTROLS);
+  const { setValue } = controls;
   const { resolvedTheme } = useTheme();
   const setContentEl = useDemoScrollbarGutter();
 
+  const { gap: gapValue, ...values } = controls.values;
+  const gap = gapValue === "" ? null : gapValue;
   const themeGap = resolvedTheme === "dark" ? DARK_GAP : LIGHT_GAP;
   const effectiveGap = gap ?? themeGap;
-  const isDefault = gap === null && valuesAreDefault(values, DEFAULT_VALUES);
 
   return (
     <>
@@ -201,26 +98,18 @@ export function ShatterDemo({ children }: { children: ReactNode }) {
           component: "Shatter",
           props: { ...values, gapColor: hexToRgb(effectiveGap) },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setGap(null);
+        controls={controls}
+        rows={{
+          gap: (
+            <ColorRow
+              label="Gap color"
+              value={effectiveGap}
+              onValueChange={(next) => setValue("gap", next)}
+              onReset={gap !== null ? () => setValue("gap", "") : undefined}
+            />
+          ),
         }}
-      >
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-        <ColorRow
-          label="Gap color"
-          value={effectiveGap}
-          onValueChange={setGap}
-          onReset={gap !== null ? () => setGap(null) : undefined}
-        />
-      </DemoControls>
+      />
     </>
   );
 }

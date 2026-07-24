@@ -3,92 +3,49 @@
 import { useState } from "react";
 import { MousePointer2 } from "lucide-react";
 
-import {
-  DemoControls,
-  RadioRow,
-  ScrubberRows,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { radio, scrub } from "@/components/demos/control-schema";
+import { DemoControls, RadioRow } from "@/components/demos/demo-controls";
 import { EntryPage } from "@/components/playground/entries/shared";
 import { MockDashboard, MockSite } from "@/components/playground/mock-site";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Peel } from "@/lib/Peel/Peel";
 import type { PeelMode, PeelSide } from "@/lib/Peel/PeelVanilla";
-
-type Values = {
-  reveal: number;
-  zone: number;
-  curl: number;
-  bow: number;
-  shade: number;
-  shine: number;
-  shineDistance: number;
-  bulge: number;
-  perspective: number;
-  smoothing: number;
-};
 
 const DEFAULT_SIDE: PeelSide = "left";
 const DEFAULT_MODE: PeelMode = "hover";
 
-const DEFAULT_VALUES: Values = {
-  reveal: 250,
-  zone: 200,
-  curl: 300,
-  bow: 75,
-  shade: 0.25,
-  shine: 1,
-  shineDistance: 1200,
-  bulge: 50,
-  perspective: 2000,
-  smoothing: 0.3,
-};
-
-const CONTROLS: ScrubberDef<keyof Values>[] = [
-  { key: "reveal", label: "Reveal", min: 80, max: 480, step: 10, decimals: 0 },
-  { key: "zone", label: "Zone", min: 40, max: 400, step: 10, decimals: 0 },
-  { key: "curl", label: "Curl", min: 40, max: 400, step: 10, decimals: 0 },
-  { key: "bow", label: "Bow", min: -150, max: 150, step: 5, decimals: 0 },
-  { key: "shade", label: "Shade", min: 0, max: 1, step: 0.05, decimals: 2 },
-  { key: "shine", label: "Shine", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "shineDistance",
-    label: "Shine distance",
+const CONTROLS = {
+  mode: radio("Mode", DEFAULT_MODE, [
+    { value: "hover", label: "Hover" },
+    { value: "cursor", label: "Cursor" },
+  ]),
+  side: radio("Side", DEFAULT_SIDE, [
+    { value: "left", label: "Left" },
+    { value: "right", label: "Right" },
+    { value: "top", label: "Top" },
+    { value: "bottom", label: "Bottom" },
+  ]),
+  reveal: scrub("Reveal", 250, { min: 80, max: 480, step: 10, decimals: 0 }),
+  zone: scrub("Zone", 200, { min: 40, max: 400, step: 10, decimals: 0 }),
+  curl: scrub("Curl", 300, { min: 40, max: 400, step: 10, decimals: 0 }),
+  bow: scrub("Bow", 75, { min: -150, max: 150, step: 5, decimals: 0 }),
+  shade: scrub("Shade", 0.25, { min: 0, max: 1, step: 0.05 }),
+  shine: scrub("Shine", 1, { min: 0, max: 1, step: 0.05 }),
+  shineDistance: scrub("Shine distance", 1200, {
     min: 0,
     max: 1200,
     step: 50,
     decimals: 0,
-  },
-  { key: "bulge", label: "Bulge", min: 0, max: 200, step: 10, decimals: 0 },
-  {
-    key: "perspective",
-    label: "Perspective",
+  }),
+  bulge: scrub("Bulge", 50, { min: 0, max: 200, step: 10, decimals: 0 }),
+  perspective: scrub("Perspective", 2000, {
     min: 400,
     max: 3000,
     step: 50,
     decimals: 0,
-  },
-  {
-    key: "smoothing",
-    label: "Smoothing",
-    min: 0.05,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-];
-
-const SIDES: { value: PeelSide; label: string }[] = [
-  { value: "left", label: "Left" },
-  { value: "right", label: "Right" },
-  { value: "top", label: "Top" },
-  { value: "bottom", label: "Bottom" },
-];
-
-const MODES: { value: PeelMode; label: string }[] = [
-  { value: "hover", label: "Hover" },
-  { value: "cursor", label: "Cursor" },
-];
+  }),
+  smoothing: scrub("Smoothing", 0.3, { min: 0.05, max: 1, step: 0.05 }),
+};
 
 function Layer({
   badge,
@@ -114,15 +71,11 @@ function Layer({
 }
 
 export function PeelEntry() {
-  const [values, setValues] = useState<Values>(DEFAULT_VALUES);
-  const [side, setSide] = useState<PeelSide>(DEFAULT_SIDE);
-  const [mode, setMode] = useState<PeelMode>(DEFAULT_MODE);
+  const controls = useDemoControls(CONTROLS);
+  const { setValue } = controls;
   const [peeked, setPeeked] = useState(false);
 
-  const isDefault =
-    side === DEFAULT_SIDE &&
-    mode === DEFAULT_MODE &&
-    valuesAreDefault(values, DEFAULT_VALUES);
+  const { side, mode, ...values } = controls.values;
 
   return (
     <>
@@ -168,36 +121,21 @@ export function PeelEntry() {
           component: "Peel",
           props: { ...values, side, mode, shineColor: "auto" },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setSide(DEFAULT_SIDE);
-          setMode(DEFAULT_MODE);
+        controls={controls}
+        rows={{
+          mode: (
+            <RadioRow
+              label="Mode"
+              options={CONTROLS.mode.options}
+              value={mode}
+              onValueChange={(next) => {
+                setValue("mode", next);
+                setPeeked(false);
+              }}
+            />
+          ),
         }}
-      >
-        <RadioRow
-          label="Mode"
-          options={MODES}
-          value={mode}
-          onValueChange={(next) => {
-            setMode(next);
-            setPeeked(false);
-          }}
-        />
-        <RadioRow
-          label="Side"
-          options={SIDES}
-          value={side}
-          onValueChange={setSide}
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+      />
     </>
   );
 }

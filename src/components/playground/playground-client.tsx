@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { useState, useSyncExternalStore } from "react";
 
 import { DemoControlsTargetContext } from "@/components/demos/demo-controls";
@@ -28,19 +28,18 @@ function useIsLg() {
 }
 
 export function PlaygroundClient() {
-  const searchParams = useSearchParams();
-  const [slug, setSlug] = useState(
-    () => getPlaygroundDemo(searchParams.get("c")).slug,
-  );
+  const [param] = useQueryState("c");
   const [controlsHost, setControlsHost] = useState<HTMLElement | null>(null);
   const isLg = useIsLg();
 
-  const demo = getPlaygroundDemo(slug);
+  const demo = getPlaygroundDemo(param);
   const Demo = demo.Component;
 
+  // Raw replaceState (not a nuqs write) so the previous component's control
+  // params are dropped atomically with the slug change; enableHistorySync
+  // feeds the update back into nuqs state.
   const select = (next: string) => {
     const resolved = getPlaygroundDemo(next).slug;
-    setSlug(resolved);
     window.history.replaceState(
       null,
       "",

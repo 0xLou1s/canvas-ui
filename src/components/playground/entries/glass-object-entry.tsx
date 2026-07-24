@@ -3,166 +3,61 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 
-import {
-  DemoControls,
-  ScrubberRows,
-  SwitchRow,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { scrub, toggle } from "@/components/demos/control-schema";
+import { DemoControls } from "@/components/demos/demo-controls";
 import {
   EntryPage,
   StatusPill,
   type EntryStatus,
 } from "@/components/playground/entries/shared";
 import { MOCK_IMAGES, MockSite } from "@/components/playground/mock-site";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { GlassObject } from "@/lib/GlassObject/GlassObject";
 
-type Values = {
-  ior: number;
-  thickness: number;
-  roughness: number;
-  dispersion: number;
-  clearcoat: number;
-  depth: number;
-  bevel: number;
-  environmentIntensity: number;
-  scale: number;
-  floatIntensity: number;
-  rotationIntensity: number;
-  floatSpeed: number;
-  fov: number;
-  cameraDistance: number;
-};
-
-type Toggles = {
-  autoRotate: boolean;
-};
-
-const DEFAULT_VALUES: Values = {
-  ior: 1.75,
-  thickness: 4,
-  roughness: 0.25,
-  dispersion: 1.5,
-  clearcoat: 0.5,
-  depth: 0.1,
-  bevel: 1,
-  environmentIntensity: 1,
-  scale: 3,
-  floatIntensity: 1,
-  rotationIntensity: 1,
-  floatSpeed: 2,
-  fov: 55,
-  cameraDistance: 4,
-};
-
-const DEFAULT_TOGGLES: Toggles = {
-  autoRotate: false,
-};
-
-const CONTROLS: ScrubberDef<keyof Values>[] = [
-  {
-    key: "ior",
-    label: "Refraction",
-    min: 1,
-    max: 2.33,
-    step: 0.01,
-    decimals: 2,
-  },
-  {
-    key: "thickness",
-    label: "Thickness",
-    min: 0,
-    max: 4,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "roughness", label: "Frost", min: 0, max: 1, step: 0.01, decimals: 2 },
-  {
-    key: "dispersion",
-    label: "Dispersion",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "clearcoat",
-    label: "Clearcoat",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "depth",
-    label: "Depth",
-    min: 0.04,
-    max: 0.8,
-    step: 0.02,
-    decimals: 2,
-  },
-  { key: "bevel", label: "Bevel", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "environmentIntensity",
-    label: "Environment",
+const CONTROLS = {
+  autoRotate: toggle("Auto rotate", false),
+  ior: scrub("Refraction", 1.75, { min: 1, max: 2.33, step: 0.01 }),
+  thickness: scrub("Thickness", 4, { min: 0, max: 4, step: 0.05 }),
+  roughness: scrub("Frost", 0.25, { min: 0, max: 1, step: 0.01 }),
+  dispersion: scrub("Dispersion", 1.5, { min: 0, max: 2, step: 0.05 }),
+  clearcoat: scrub("Clearcoat", 0.5, { min: 0, max: 1, step: 0.05 }),
+  depth: scrub("Depth", 0.1, { min: 0.04, max: 0.8, step: 0.02 }),
+  bevel: scrub("Bevel", 1, { min: 0, max: 1, step: 0.05 }),
+  environmentIntensity: scrub("Environment", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  { key: "scale", label: "Scale", min: 0.5, max: 6, step: 0.1, decimals: 1 },
-  {
-    key: "floatIntensity",
-    label: "Float",
-    min: 0,
-    max: 6,
-    step: 0.1,
-    decimals: 1,
-  },
-  {
-    key: "rotationIntensity",
-    label: "Rocking",
+  }),
+  scale: scrub("Scale", 3, { min: 0.5, max: 6, step: 0.1, decimals: 1 }),
+  floatIntensity: scrub("Float", 1, { min: 0, max: 6, step: 0.1, decimals: 1 }),
+  rotationIntensity: scrub("Rocking", 1, {
     min: 0,
     max: 4,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "floatSpeed",
-    label: "Float speed",
+  }),
+  floatSpeed: scrub("Float speed", 2, {
     min: 0,
     max: 8,
     step: 0.1,
     decimals: 1,
-  },
-  {
-    key: "fov",
-    label: "Field of view",
-    min: 20,
-    max: 100,
-    step: 1,
-    decimals: 0,
-  },
-  {
-    key: "cameraDistance",
-    label: "Camera distance",
+  }),
+  fov: scrub("Field of view", 55, { min: 20, max: 100, step: 1, decimals: 0 }),
+  cameraDistance: scrub("Camera distance", 4, {
     min: 2,
     max: 10,
     step: 0.1,
     decimals: 1,
-  },
-];
+  }),
+};
 
 export function GlassObjectEntry() {
   const { resolvedTheme } = useTheme();
-  const [values, setValues] = useState<Values>(DEFAULT_VALUES);
-  const [toggles, setToggles] = useState<Toggles>(DEFAULT_TOGGLES);
+  const controls = useDemoControls(CONTROLS);
+  const { autoRotate, ...values } = controls.values;
+  const toggles = { autoRotate };
   const [status, setStatus] = useState<EntryStatus>("loading");
-
-  const isDefault =
-    valuesAreDefault(values, DEFAULT_VALUES) &&
-    valuesAreDefault(toggles, DEFAULT_TOGGLES);
 
   return (
     <>
@@ -200,27 +95,8 @@ export function GlassObjectEntry() {
             backgroundImage: MOCK_IMAGES.glassBackdrop,
           },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setToggles(DEFAULT_TOGGLES);
-        }}
-      >
-        <SwitchRow
-          label="Auto rotate"
-          checked={toggles.autoRotate}
-          onCheckedChange={(checked) =>
-            setToggles((prev) => ({ ...prev, autoRotate: checked }))
-          }
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

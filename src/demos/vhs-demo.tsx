@@ -1,124 +1,47 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
+import { scrub } from "@/components/demos/control-schema";
 import {
   DemoControls,
-  ScrubberRows,
   useDemoScrollbarGutter,
-  valuesAreDefault,
-  type ScrubberDef,
 } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { VHS } from "@/lib/VHS/VHS";
 
-type VHSValues = {
-  speed: number;
-  wave: number;
-  jitter: number;
-  crease: number;
-  switching: number;
-  switchingHeight: number;
-  bloom: number;
-  aberration: number;
-  acBeat: number;
-  grain: number;
-  scanlines: number;
-  vignette: number;
-  barrel: number;
-  saturation: number;
-  exposure: number;
-};
-
-const DEFAULT_VALUES: VHSValues = {
-  speed: 0.5,
-  wave: 1,
-  jitter: 0.25,
-  crease: 0.1,
-  switching: 0.05,
-  switchingHeight: 0.02,
-  bloom: 0.4,
-  aberration: 2,
-  acBeat: 1,
-  grain: 0.1,
-  scanlines: 0.1,
-  vignette: 0,
-  barrel: 0,
-  saturation: 1,
-  exposure: 1,
-};
-
-const CONTROLS: ScrubberDef<keyof VHSValues>[] = [
-  { key: "speed", label: "Speed", min: 0, max: 4, step: 0.1, decimals: 1 },
-  { key: "wave", label: "Wave", min: 0, max: 3, step: 0.05, decimals: 2 },
-  { key: "jitter", label: "Jitter", min: 0, max: 3, step: 0.05, decimals: 2 },
-  { key: "crease", label: "Crease", min: 0, max: 3, step: 0.05, decimals: 2 },
-  {
-    key: "switching",
-    label: "Switching",
-    min: 0,
-    max: 3,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "switchingHeight",
-    label: "Switch height",
+const CONTROLS = {
+  speed: scrub("Speed", 0.5, { min: 0, max: 4, step: 0.1, decimals: 1 }),
+  wave: scrub("Wave", 1, { min: 0, max: 3, step: 0.05 }),
+  jitter: scrub("Jitter", 0.25, { min: 0, max: 3, step: 0.05 }),
+  crease: scrub("Crease", 0.1, { min: 0, max: 3, step: 0.05 }),
+  switching: scrub("Switching", 0.05, { min: 0, max: 3, step: 0.05 }),
+  switchingHeight: scrub("Switch height", 0.02, {
     min: 0,
     max: 0.2,
     step: 0.005,
     decimals: 3,
-  },
-  { key: "bloom", label: "Bloom", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "aberration",
-    label: "Aberration",
+  }),
+  bloom: scrub("Bloom", 0.4, { min: 0, max: 1, step: 0.05 }),
+  aberration: scrub("Aberration", 2, {
     min: 0,
     max: 12,
     step: 0.5,
     decimals: 1,
-  },
-  { key: "acBeat", label: "AC beat", min: 0, max: 3, step: 0.05, decimals: 2 },
-  { key: "grain", label: "Grain", min: 0, max: 0.5, step: 0.01, decimals: 2 },
-  {
-    key: "scanlines",
-    label: "Scanlines",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "vignette",
-    label: "Vignette",
-    min: 0,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "barrel", label: "Barrel", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "saturation",
-    label: "Saturation",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-  {
-    key: "exposure",
-    label: "Exposure",
-    min: 0.5,
-    max: 2,
-    step: 0.05,
-    decimals: 2,
-  },
-];
+  }),
+  acBeat: scrub("AC beat", 1, { min: 0, max: 3, step: 0.05 }),
+  grain: scrub("Grain", 0.1, { min: 0, max: 0.5, step: 0.01 }),
+  scanlines: scrub("Scanlines", 0.1, { min: 0, max: 1, step: 0.05 }),
+  vignette: scrub("Vignette", 0, { min: 0, max: 1, step: 0.05 }),
+  barrel: scrub("Barrel", 0, { min: 0, max: 1, step: 0.05 }),
+  saturation: scrub("Saturation", 1, { min: 0, max: 2, step: 0.05 }),
+  exposure: scrub("Exposure", 1, { min: 0.5, max: 2, step: 0.05 }),
+};
 
 export function VHSDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<VHSValues>(DEFAULT_VALUES);
+  const controls = useDemoControls(CONTROLS);
+  const values = controls.values;
   const setContentEl = useDemoScrollbarGutter();
-
-  const isDefault = valuesAreDefault(values, DEFAULT_VALUES);
 
   return (
     <>
@@ -138,17 +61,8 @@ export function VHSDemo({ children }: { children: ReactNode }) {
       <DemoControls
         title="VHS controls"
         snippet={{ component: "VHS", props: { ...values } }}
-        isDefault={isDefault}
-        onReset={() => setValues(DEFAULT_VALUES)}
-      >
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }

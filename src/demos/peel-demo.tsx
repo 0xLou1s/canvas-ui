@@ -9,31 +9,12 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { useState } from "react";
 
-import {
-  ColorRow,
-  DemoControls,
-  RadioRow,
-  ScrubberRows,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { color, radio, scrub } from "@/components/demos/control-schema";
+import { DemoControls } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Peel } from "@/lib/Peel/Peel";
 import type { PeelMode, PeelSide } from "@/lib/Peel/PeelVanilla";
-
-type PeelValues = {
-  reveal: number;
-  zone: number;
-  curl: number;
-  bow: number;
-  shade: number;
-  shine: number;
-  shineDistance: number;
-  bulge: number;
-  perspective: number;
-  smoothing: number;
-};
 
 const DEFAULT_SIDE: PeelSide = "left";
 const DEFAULT_MODE: PeelMode = "cursor";
@@ -48,64 +29,39 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-const DEFAULT_VALUES: PeelValues = {
-  reveal: 250,
-  zone: 200,
-  curl: 300,
-  bow: 75,
-  shade: 0.25,
-  shine: 1,
-  shineDistance: 1200,
-  bulge: 50,
-  perspective: 2000,
-  smoothing: 0.3,
-};
-
-const CONTROLS: ScrubberDef<keyof PeelValues>[] = [
-  { key: "reveal", label: "Reveal", min: 80, max: 480, step: 10, decimals: 0 },
-  { key: "zone", label: "Zone", min: 40, max: 400, step: 10, decimals: 0 },
-  { key: "curl", label: "Curl", min: 40, max: 400, step: 10, decimals: 0 },
-  { key: "bow", label: "Bow", min: -150, max: 150, step: 5, decimals: 0 },
-  { key: "shade", label: "Shade", min: 0, max: 1, step: 0.05, decimals: 2 },
-  { key: "shine", label: "Shine", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "shineDistance",
-    label: "Shine distance",
+const CONTROLS = {
+  side: radio("Peel side", DEFAULT_SIDE, [
+    { value: "left", label: "Left" },
+    { value: "right", label: "Right" },
+    { value: "top", label: "Top" },
+    { value: "bottom", label: "Bottom" },
+  ]),
+  mode: radio("Peel mode", DEFAULT_MODE, [
+    { value: "cursor", label: "Cursor" },
+    { value: "hover", label: "Hover" },
+  ]),
+  shineColor: color("Shine color", AUTO_COLOR, { auto: { label: "Auto" } }),
+  reveal: scrub("Reveal", 250, { min: 80, max: 480, step: 10, decimals: 0 }),
+  zone: scrub("Zone", 200, { min: 40, max: 400, step: 10, decimals: 0 }),
+  curl: scrub("Curl", 300, { min: 40, max: 400, step: 10, decimals: 0 }),
+  bow: scrub("Bow", 75, { min: -150, max: 150, step: 5, decimals: 0 }),
+  shade: scrub("Shade", 0.25, { min: 0, max: 1, step: 0.05 }),
+  shine: scrub("Shine", 1, { min: 0, max: 1, step: 0.05 }),
+  shineDistance: scrub("Shine distance", 1200, {
     min: 0,
     max: 1200,
     step: 50,
     decimals: 0,
-  },
-  { key: "bulge", label: "Bulge", min: 0, max: 200, step: 10, decimals: 0 },
-  {
-    key: "perspective",
-    label: "Perspective",
+  }),
+  bulge: scrub("Bulge", 50, { min: 0, max: 200, step: 10, decimals: 0 }),
+  perspective: scrub("Perspective", 2000, {
     min: 400,
     max: 3000,
     step: 50,
     decimals: 0,
-  },
-  {
-    key: "smoothing",
-    label: "Smoothing",
-    min: 0.05,
-    max: 1,
-    step: 0.05,
-    decimals: 2,
-  },
-];
-
-const SIDES: { value: PeelSide; label: string }[] = [
-  { value: "left", label: "Left" },
-  { value: "right", label: "Right" },
-  { value: "top", label: "Top" },
-  { value: "bottom", label: "Bottom" },
-];
-
-const MODES: { value: PeelMode; label: string }[] = [
-  { value: "cursor", label: "Cursor" },
-  { value: "hover", label: "Hover" },
-];
+  }),
+  smoothing: scrub("Smoothing", 0.3, { min: 0.05, max: 1, step: 0.05 }),
+};
 
 const STATS = [
   { label: "Revenue", value: "$48.2k", change: "+12.4%", up: true },
@@ -303,16 +259,9 @@ function UnderPanel({ side }: { side: PeelSide }) {
 }
 
 export function PeelDemo() {
-  const [values, setValues] = useState<PeelValues>(DEFAULT_VALUES);
-  const [side, setSide] = useState<PeelSide>(DEFAULT_SIDE);
-  const [mode, setMode] = useState<PeelMode>(DEFAULT_MODE);
-  const [shineColor, setShineColor] = useState(AUTO_COLOR);
+  const controls = useDemoControls(CONTROLS);
 
-  const isDefault =
-    side === DEFAULT_SIDE &&
-    mode === DEFAULT_MODE &&
-    shineColor === AUTO_COLOR &&
-    valuesAreDefault(values, DEFAULT_VALUES);
+  const { side, mode, shineColor, ...values } = controls.values;
 
   return (
     <section className="mt-8" aria-label="Demo">
@@ -345,46 +294,9 @@ export function PeelDemo() {
               shineColor === AUTO_COLOR ? "auto" : hexToRgb(shineColor),
           },
         }}
-        isDefault={isDefault}
+        controls={controls}
         portal
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setSide(DEFAULT_SIDE);
-          setMode(DEFAULT_MODE);
-          setShineColor(AUTO_COLOR);
-        }}
-      >
-        <RadioRow
-          label="Peel side"
-          options={SIDES}
-          value={side}
-          onValueChange={setSide}
-        />
-        <RadioRow
-          label="Peel mode"
-          options={MODES}
-          value={mode}
-          onValueChange={setMode}
-        />
-        <ColorRow
-          label="Shine color"
-          value={shineColor === AUTO_COLOR ? "#ffffff" : shineColor}
-          onValueChange={setShineColor}
-          displayValue={shineColor === AUTO_COLOR ? "Auto" : undefined}
-          onReset={
-            shineColor !== AUTO_COLOR
-              ? () => setShineColor(AUTO_COLOR)
-              : undefined
-          }
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+      />
     </section>
   );
 }

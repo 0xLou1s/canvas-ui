@@ -2,31 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
-import {
-  ColorRow,
-  DemoControls,
-  RadioRow,
-  ScrubberRows,
-  valuesAreDefault,
-  type ScrubberDef,
-} from "@/components/demos/demo-controls";
+import { color, radio, scrub } from "@/components/demos/control-schema";
+import { DemoControls } from "@/components/demos/demo-controls";
+import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Cloth } from "@/lib/Cloth/Cloth";
 import type { ClothPin } from "@/lib/Cloth/ClothVanilla";
-
-type ClothValues = {
-  wind: number;
-  speed: number;
-  amplitude: number;
-  drape: number;
-  brush: number;
-  brushSize: number;
-  damping: number;
-  light: number;
-  sheen: number;
-  shadow: number;
-  cornerRadius: number;
-  perspective: number;
-};
 
 const DEFAULT_PIN: ClothPin = "top";
 const AUTO_COLOR = "auto";
@@ -40,77 +20,47 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-const DEFAULT_VALUES: ClothValues = {
-  wind: 3,
-  speed: 0.5,
-  amplitude: 30,
-  drape: 40,
-  brush: 2.05,
-  brushSize: 150,
-  damping: 1,
-  light: 0.5,
-  sheen: 0.1,
-  shadow: 0.25,
-  cornerRadius: 20,
-  perspective: 1200,
-};
-
-const CONTROLS: ScrubberDef<keyof ClothValues>[] = [
-  { key: "wind", label: "Wind", min: 0, max: 5, step: 0.05, decimals: 2 },
-  { key: "speed", label: "Speed", min: 0, max: 3, step: 0.05, decimals: 2 },
-  {
-    key: "amplitude",
-    label: "Fold height",
+const CONTROLS = {
+  pin: radio("Pinned edge", DEFAULT_PIN, [
+    { value: "top", label: "Top" },
+    { value: "bottom", label: "Bottom" },
+    { value: "left", label: "Left" },
+    { value: "right", label: "Right" },
+  ]),
+  backing: color("Backing", AUTO_COLOR, { auto: { label: "Auto" } }),
+  wind: scrub("Wind", 3, { min: 0, max: 5, step: 0.05 }),
+  speed: scrub("Speed", 0.5, { min: 0, max: 3, step: 0.05 }),
+  amplitude: scrub("Fold height", 30, {
     min: 0,
     max: 60,
     step: 1,
     decimals: 0,
-  },
-  { key: "drape", label: "Billow", min: 0, max: 50, step: 1, decimals: 0 },
-  { key: "brush", label: "Brush", min: 0, max: 3, step: 0.05, decimals: 2 },
-  {
-    key: "brushSize",
-    label: "Brush size",
+  }),
+  drape: scrub("Billow", 40, { min: 0, max: 50, step: 1, decimals: 0 }),
+  brush: scrub("Brush", 2.05, { min: 0, max: 3, step: 0.05 }),
+  brushSize: scrub("Brush size", 150, {
     min: 30,
     max: 260,
     step: 5,
     decimals: 0,
-  },
-  {
-    key: "damping",
-    label: "Settle",
-    min: 0.2,
-    max: 4,
-    step: 0.05,
-    decimals: 2,
-  },
-  { key: "light", label: "Lighting", min: 0, max: 1, step: 0.05, decimals: 2 },
-  { key: "sheen", label: "Sheen", min: 0, max: 1, step: 0.05, decimals: 2 },
-  { key: "shadow", label: "Shadow", min: 0, max: 1, step: 0.05, decimals: 2 },
-  {
-    key: "cornerRadius",
-    label: "Corners",
+  }),
+  damping: scrub("Settle", 1, { min: 0.2, max: 4, step: 0.05 }),
+  light: scrub("Lighting", 0.5, { min: 0, max: 1, step: 0.05 }),
+  sheen: scrub("Sheen", 0.1, { min: 0, max: 1, step: 0.05 }),
+  shadow: scrub("Shadow", 0.25, { min: 0, max: 1, step: 0.05 }),
+  cornerRadius: scrub("Corners", 20, {
     min: 0,
     max: 160,
     step: 2,
     decimals: 0,
-  },
-  {
-    key: "perspective",
-    label: "Perspective",
+  }),
+  perspective: scrub("Perspective", 1200, {
     min: 400,
     max: 4000,
     step: 50,
     decimals: 0,
-  },
-];
-
-const PINS: { value: ClothPin; label: string }[] = [
-  { value: "top", label: "Top" },
-  { value: "bottom", label: "Bottom" },
-  { value: "left", label: "Left" },
-  { value: "right", label: "Right" },
-];
+  }),
+};
 
 function usePageScrollSync(inner: HTMLElement | null) {
   const [overflowPx, setOverflowPx] = useState(0);
@@ -143,16 +93,11 @@ function usePageScrollSync(inner: HTMLElement | null) {
 }
 
 export function ClothDemo({ children }: { children: ReactNode }) {
-  const [values, setValues] = useState<ClothValues>(DEFAULT_VALUES);
-  const [pin, setPin] = useState<ClothPin>(DEFAULT_PIN);
-  const [backing, setBacking] = useState(AUTO_COLOR);
+  const controls = useDemoControls(CONTROLS);
   const [inner, setInner] = useState<HTMLDivElement | null>(null);
   const overflowPx = usePageScrollSync(inner);
 
-  const isDefault =
-    pin === DEFAULT_PIN &&
-    backing === AUTO_COLOR &&
-    valuesAreDefault(values, DEFAULT_VALUES);
+  const { pin, backing, ...values } = controls.values;
 
   return (
     <>
@@ -186,36 +131,8 @@ export function ClothDemo({ children }: { children: ReactNode }) {
             backing: backing === AUTO_COLOR ? "auto" : hexToRgb(backing),
           },
         }}
-        isDefault={isDefault}
-        onReset={() => {
-          setValues(DEFAULT_VALUES);
-          setPin(DEFAULT_PIN);
-          setBacking(AUTO_COLOR);
-        }}
-      >
-        <RadioRow
-          label="Pinned edge"
-          options={PINS}
-          value={pin}
-          onValueChange={setPin}
-        />
-        <ColorRow
-          label="Backing"
-          value={backing === AUTO_COLOR ? "#ffffff" : backing}
-          onValueChange={setBacking}
-          displayValue={backing === AUTO_COLOR ? "Auto" : undefined}
-          onReset={
-            backing !== AUTO_COLOR ? () => setBacking(AUTO_COLOR) : undefined
-          }
-        />
-        <ScrubberRows
-          controls={CONTROLS}
-          values={values}
-          onChange={(key, next) =>
-            setValues((prev) => ({ ...prev, [key]: next }))
-          }
-        />
-      </DemoControls>
+        controls={controls}
+      />
     </>
   );
 }
