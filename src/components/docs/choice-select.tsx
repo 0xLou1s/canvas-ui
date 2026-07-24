@@ -18,10 +18,11 @@ export interface ChoiceOption<T extends string = string> {
 
 /**
  * The control the docs chrome uses to switch framework, package manager, or
- * client. On a wide viewport it's the flush tablist the docs have always used;
- * below `sm` — where a row of tabs would overflow — it collapses to the Base UI
- * select, styled to match CopyMenu's popup. One value, one handler, both
- * presentations; call sites supply data only.
+ * client. By default it's the Base UI select at every viewport size — with six
+ * supported frameworks a row of tabs no longer fits. Short, fixed lists (the
+ * four package managers) can opt into `variant="tabs"`: the flush tablist on
+ * `sm` and up, collapsing to the select below where tabs would overflow. Call
+ * sites supply data only.
  */
 export function ChoiceSelect<T extends string>({
   label,
@@ -30,6 +31,7 @@ export function ChoiceSelect<T extends string>({
   onValueChange,
   align,
   className,
+  variant = "select",
 }: {
   /** Accessible name for the control, e.g. "Framework". */
   label: string;
@@ -39,6 +41,8 @@ export function ChoiceSelect<T extends string>({
   /** Which trigger edge the popup hangs from. `"end"` for a right-flush row. */
   align?: "start" | "end";
   className?: string;
+  /** `"tabs"` shows a tablist on `sm`+ (for short lists); select otherwise. */
+  variant?: "select" | "tabs";
 }) {
   const select = (next: T) => {
     onValueChange(next);
@@ -47,41 +51,41 @@ export function ChoiceSelect<T extends string>({
 
   return (
     <>
-      {/* Wide desktop: the flush tablist, bleeding to the header divider. */}
-      <div
-        role="tablist"
-        aria-label={label}
-        className={cn("hidden items-center sm:flex", className)}
-      >
-        {options.map((option) => {
-          const selected = option.id === value;
-          return (
-            <button
-              key={option.id}
-              role="tab"
-              type="button"
-              aria-selected={selected}
-              onClick={() => select(option.id)}
-              className={cn(
-                "relative shrink-0 px-3 py-2.5 text-[13px] transition-colors duration-150",
-                selected
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {option.label}
-              <span
+      {variant === "tabs" ? (
+        <div
+          role="tablist"
+          aria-label={label}
+          className={cn("hidden items-center sm:flex", className)}
+        >
+          {options.map((option) => {
+            const selected = option.id === value;
+            return (
+              <button
+                key={option.id}
+                role="tab"
+                type="button"
+                aria-selected={selected}
+                onClick={() => select(option.id)}
                 className={cn(
-                  "absolute inset-x-3 -bottom-px h-px bg-foreground transition-opacity duration-150",
-                  selected ? "opacity-100" : "opacity-0",
+                  "relative shrink-0 px-3 py-2.5 text-[13px] transition-colors duration-150",
+                  selected
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
-              />
-            </button>
-          );
-        })}
-      </div>
+              >
+                {option.label}
+                <span
+                  className={cn(
+                    "absolute inset-x-3 -bottom-px h-px bg-foreground transition-opacity duration-150",
+                    selected ? "opacity-100" : "opacity-0",
+                  )}
+                />
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
-      {/* Below the threshold: the select, where the tabs would overflow. */}
       <Select<T>
         value={value}
         onValueChange={(next) => {
@@ -91,7 +95,11 @@ export function ChoiceSelect<T extends string>({
       >
         <SelectTrigger
           aria-label={label}
-          className={cn("my-1.5 min-w-0 sm:hidden", className)}
+          className={cn(
+            "my-1.5 min-w-0",
+            variant === "tabs" && "sm:hidden",
+            className,
+          )}
         >
           <SelectValue className="truncate">
             {(current: T | null) =>

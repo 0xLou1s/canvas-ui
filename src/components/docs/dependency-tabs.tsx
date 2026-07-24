@@ -36,6 +36,7 @@ export function DependencyTabs({
       <div className="flex items-center border-b border-border/60 bg-muted/40 px-2">
         <ChoiceSelect
           label="Package manager"
+          variant="tabs"
           options={MANAGERS}
           value={manager.id}
           onValueChange={setManagerId}

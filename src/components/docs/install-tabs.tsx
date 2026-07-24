@@ -48,6 +48,7 @@ export function InstallTabs({ item }: { item: string }) {
       <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-2">
         <ChoiceSelect
           label="Package manager"
+          variant="tabs"
           options={MANAGERS}
           value={manager.id}
           onValueChange={setManagerId}
