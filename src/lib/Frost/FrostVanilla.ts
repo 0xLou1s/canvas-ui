@@ -580,17 +580,25 @@ export function createFrost(
   );
 
   let contentDirty = false;
+  // In html-in-canvas mode the content texture is empty (all zeros) until the
+  // first drawElementImage capture is uploaded; drawing the opaque output pass
+  // before then flashes a black full-viewport frame on load. Hold rendering
+  // until the first upload. The fallback path has no content texture, so it
+  // can render immediately.
+  let contentReady = !htmlInCanvas;
   let wake = () => {};
 
+  function captureContent() {
+    try {
+      sourceCtx!.reset();
+      sourceCtx!.drawElementImage!(content, 0, 0);
+      contentDirty = true;
+      wake();
+    } catch {}
+  }
+
   if (htmlInCanvas) {
-    paintable.onpaint = () => {
-      try {
-        sourceCtx!.reset();
-        sourceCtx!.drawElementImage!(content, 0, 0);
-        contentDirty = true;
-        wake();
-      } catch {}
-    };
+    paintable.onpaint = captureContent;
   }
 
   const halfFloat = Boolean(gl.getExtension("EXT_color_buffer_float"));
@@ -816,6 +824,12 @@ export function createFrost(
 
   syncCanvasSize();
 
+  // Capture synchronously at init so the source canvas shows content on the
+  // very first browser paint. onpaint fires async, which would otherwise
+  // leave the page blank for a frame or two after hydration moves the
+  // content into the canvas subtree.
+  if (htmlInCanvas) captureContent();
+
   function uploadContent() {
     if (!htmlInCanvas || !contentDirty) return;
     contentDirty = false;
@@ -829,6 +843,12 @@ export function createFrost(
       gl!.UNSIGNED_BYTE,
       source,
     );
+    if (!contentReady) {
+      // First real capture just landed: only now is it safe to draw the
+      // opaque output pass, and the intro should start from this moment.
+      contentReady = true;
+      introStart = performance.now();
+    }
   }
 
   function renderBlur() {
@@ -1030,7 +1050,7 @@ export function createFrost(
   let running = false;
   let visible = true;
   let activeUntil = 0;
-  const introStart = performance.now();
+  let introStart = performance.now();
 
   function introProgress(now: number) {
     const introMs = Math.max(config.introDuration, 0) * 1000;
@@ -1052,6 +1072,11 @@ export function createFrost(
     }
     gl!.disable(gl!.BLEND);
     uploadContent();
+    if (!contentReady) {
+      // Waiting for the first content capture; onpaint -> wake() restarts us.
+      running = false;
+      return;
+    }
     renderBlur();
     renderPointer();
     renderFrost(now);
