@@ -107,9 +107,9 @@ export function HtmlInCanvasBanner() {
             <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 text-[13px] leading-5 text-muted-foreground">
               {chromium ? (
-                <>This effect only works with {browser.name}&apos;s HTML-in-Canvas flag enabled.</>
+                <>This component only works with {browser.name}&apos;s HTML-in-Canvas flag enabled.</>
               ) : unsupported ? (
-                <>This effect needs HTML-in-Canvas, which {browser.name} doesn&apos;t support.</>
+                <>This component needs HTML-in-Canvas, which {browser.name} doesn&apos;t support.</>
               ) : (
                 <>Your browser doesn&apos;t have HTML-in-Canvas enabled.</>
               )}
