@@ -11,6 +11,13 @@ const SITE_URL = "https://canvasui.dev";
 const DESCRIPTION =
   "An open source component library of creative html-in-canvas and WebGL effects for React, Vue, Svelte, and vanilla JS. Creative effects running over live HTML.";
 
+// Chrome origin trial token for the HTML-in-Canvas API. Tokens are public by
+// design (origin-bound, feature-bound, time-limited), so it is safe to inline.
+// Register at https://developer.chrome.com/origintrials and paste the token
+// into NEXT_PUBLIC_HTML_IN_CANVAS_OT_TOKEN (or directly below) at build time.
+const ORIGIN_TRIAL_TOKEN =
+  process.env.NEXT_PUBLIC_HTML_IN_CANVAS_OT_TOKEN ?? "";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -78,6 +85,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
+      {ORIGIN_TRIAL_TOKEN ? (
+        <head>
+          <meta httpEquiv="origin-trial" content={ORIGIN_TRIAL_TOKEN} />
+        </head>
+      ) : null}
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <ThemeProvider>
           <ThemeFavicon />
