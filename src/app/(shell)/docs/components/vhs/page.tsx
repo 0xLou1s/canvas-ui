@@ -139,6 +139,7 @@ export default async function VHSPage() {
         variants={[...variants]}
         installItem="vhs"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection

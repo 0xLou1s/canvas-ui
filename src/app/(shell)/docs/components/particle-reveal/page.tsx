@@ -118,6 +118,7 @@ export default async function ParticleRevealPage() {
         variants={[...variants]}
         installItem="particle-reveal"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={<ParticleRevealDemo />}
       />

@@ -94,6 +94,7 @@ export default async function GlitchPage() {
         variants={[...variants]}
         installItem="glitch"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection

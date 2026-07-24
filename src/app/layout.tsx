@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
-import { FlagNotice } from "@/components/common/flag-notice";
 import { ThemeFavicon } from "@/components/common/theme-favicon";
 import { ThemeProvider } from "@/components/common/theme-provider";
 
@@ -82,7 +81,6 @@ export default function RootLayout({
         <ThemeProvider>
           <ThemeFavicon />
           {children}
-          <FlagNotice />
         </ThemeProvider>
       </body>
     </html>

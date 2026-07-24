@@ -126,6 +126,7 @@ export default async function ParticleScrollPage() {
         variants={[...variants]}
         installItem="particle-scroll"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection

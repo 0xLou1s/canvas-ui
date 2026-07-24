@@ -156,6 +156,7 @@ export default async function ShatterPage() {
         variants={[...variants]}
         installItem="shatter"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection
