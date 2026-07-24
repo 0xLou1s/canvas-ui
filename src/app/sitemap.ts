@@ -19,6 +19,7 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: "/docs/components/clouds", priority: 0.8 },
   { path: "/docs/components/dithered-object", priority: 0.8 },
   { path: "/docs/components/droplets", priority: 0.8 },
+  { path: "/docs/components/frost", priority: 0.8 },
   { path: "/docs/components/glass", priority: 0.8 },
   { path: "/docs/components/glass-object", priority: 0.8 },
   { path: "/docs/components/glitch", priority: 0.8 },

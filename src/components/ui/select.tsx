@@ -1,7 +1,7 @@
 "use client";
 
 import { Select as SelectPrimitive } from "@base-ui/react/select";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "inline-flex h-8 cursor-pointer items-center justify-between gap-1.5 rounded-full border border-border/70 px-3 text-[13px] whitespace-nowrap text-muted-foreground transition-[color,transform] duration-150 ease-out outline-none select-none hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-95 data-popup-open:text-foreground motion-reduce:transition-none",
+        "inline-flex h-8 cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-transparent px-2.5 text-[13px] whitespace-nowrap text-muted-foreground transition-[color,background-color,transform] duration-150 ease-out outline-none select-none hover:bg-muted/60 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97] data-popup-open:bg-muted/60 data-popup-open:text-foreground motion-reduce:transition-none",
         className,
       )}
       {...props}
@@ -76,15 +76,12 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "grid cursor-pointer grid-cols-[0.875rem_1fr] items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-muted-foreground transition-colors duration-100 outline-none select-none data-highlighted:bg-muted/60 data-highlighted:text-foreground data-selected:text-foreground",
+        "flex cursor-pointer items-center rounded-lg px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-100 outline-none select-none data-highlighted:bg-muted/60 data-highlighted:text-foreground data-selected:bg-muted/60 data-selected:font-medium data-selected:text-foreground",
         className,
       )}
       {...props}
     >
-      <SelectPrimitive.ItemIndicator className="col-start-1 flex">
-        <Check aria-hidden className="size-3.5" />
-      </SelectPrimitive.ItemIndicator>
-      <SelectPrimitive.ItemText className="col-start-2 whitespace-nowrap">
+      <SelectPrimitive.ItemText className="whitespace-nowrap">
         {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>

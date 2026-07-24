@@ -20,21 +20,6 @@ export function Hero() {
 }`,
   },
   {
-    id: "solid",
-    label: "Solid",
-    fileName: "hero.tsx",
-    lang: "tsx",
-    source: `import { ParticleReveal } from "@/components/canvasui/ParticleReveal";
-
-export function Hero() {
-  return (
-    <ParticleReveal radius={300}>
-      <YourContent />
-    </ParticleReveal>
-  );
-}`,
-  },
-  {
     id: "vue",
     label: "Vue",
     fileName: "Hero.vue",
@@ -61,6 +46,21 @@ import ParticleReveal from "@/components/canvasui/ParticleReveal.vue";
 <ParticleReveal radius={300}>
   <YourContent />
 </ParticleReveal>`,
+  },
+  {
+    id: "solid",
+    label: "Solid",
+    fileName: "hero.tsx",
+    lang: "tsx",
+    source: `import { ParticleReveal } from "@/components/canvasui/ParticleReveal";
+
+export function Hero() {
+  return (
+    <ParticleReveal radius={300}>
+      <YourContent />
+    </ParticleReveal>
+  );
+}`,
   },
   {
     id: "vanilla",

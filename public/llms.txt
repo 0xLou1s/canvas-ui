@@ -19,6 +19,7 @@
 - [Clouds](https://canvasui.dev/docs/components/clouds): Theme-aware mist that blurs and refracts live HTML, parted by cursor wind
 - [Dithered Object](https://canvasui.dev/docs/components/dithered-object): Any GLB/glTF model floating in a studio scene, rendered through a 1-bit Bayer dither (three.js)
 - [Droplets](https://canvasui.dev/docs/components/droplets): Rain droplets that run down the screen and refract live HTML
+- [Frost](https://canvasui.dev/docs/components/frost): A frozen pane of ice over live HTML that melts under the cursor and refreezes, with refraction and frost grain
 - [Glass](https://canvasui.dev/docs/components/glass): A cursor-following glass lens that refracts live HTML and zooms in on targets like a crystal ball
 - [Glass Object](https://canvasui.dev/docs/components/glass-object): Turns any 3D model, SVG, or image into floating liquid glass with real refraction, dispersion, and frost
 - [Glitch](https://canvasui.dev/docs/components/glitch): Broadcast glitch bursts that tear live HTML into shifted slices with RGB splits, corrupted blocks, and analog noise

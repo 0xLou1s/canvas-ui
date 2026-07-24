@@ -11,6 +11,7 @@ export interface ComponentEntry {
  * opposite theme filter: inverted in dark mode, untouched in light mode.
  */
 export const LIGHT_VIDEOS = new Set([
+  "/assets/videos/frost.webm",
   "/assets/videos/glitch.webm",
   "/assets/videos/hex-float.webm",
   "/assets/videos/ripple.webm",
@@ -74,6 +75,13 @@ export const COMPONENTS: ComponentEntry[] = [
     description:
       "Rain droplets that run down the screen and refract your live HTML.",
     video: "/assets/videos/droplets.webm",
+  },
+  {
+    href: "/docs/components/frost",
+    name: "Frost",
+    description:
+      "A frozen pane of ice over your live HTML that melts under the cursor and refreezes.",
+    video: "/assets/videos/frost.webm",
   },
   {
     href: "/docs/components/glass",

@@ -111,6 +111,12 @@ const ENTRIES: SearchEntry[] = [
     hint: "rain water refraction",
   },
   {
+    href: "/docs/components/frost",
+    label: "Frost",
+    section: "Components",
+    hint: "ice frozen frost melt refraction winter freeze snow blur glass pane",
+  },
+  {
     href: "/docs/components/glass",
     label: "Glass",
     section: "Components",

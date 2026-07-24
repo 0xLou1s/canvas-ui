@@ -106,6 +106,15 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     ),
   },
   {
+    slug: "frost",
+    name: "Frost",
+    description: "A frozen pane that melts under the cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/frost-demo").then((m) => m.FrostDemo),
+    ),
+  },
+  {
     slug: "glass",
     name: "Glass",
     description: "A crystal-ball lens that zooms on targets.",

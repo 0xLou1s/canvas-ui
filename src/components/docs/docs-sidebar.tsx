@@ -51,6 +51,7 @@ const sections = [
       { href: "/docs/components/clouds", label: "Clouds" },
       { href: "/docs/components/dithered-object", label: "Dithered Object" },
       { href: "/docs/components/droplets", label: "Droplets" },
+      { href: "/docs/components/frost", label: "Frost" },
       { href: "/docs/components/glass", label: "Glass" },
       { href: "/docs/components/glass-object", label: "Glass Object" },
       { href: "/docs/components/glitch", label: "Glitch" },

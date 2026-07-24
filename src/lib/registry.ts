@@ -98,6 +98,11 @@ const COMPONENTS: Record<string, ComponentDef> = {
     description:
       "Broadcast glitch bursts that tear the page into shifted slices with RGB splits, corrupted blocks, and analog noise, then settle back to a clean read. The HTML stays interactive. No dependencies.",
   },
+  frost: {
+    base: "Frost",
+    description:
+      "Covers your page in a frozen pane of ice with refraction and frost grain. Hovering melts a hole through the frost, which freezes back over. The HTML stays interactive. No dependencies.",
+  },
   "hex-float": {
     base: "HexFloat",
     description:
@@ -210,18 +215,6 @@ export function getComponentSources(component: string): ComponentSource[] {
       source: makeStandalone(base, read(base, `${base}.tsx`), engine, "react"),
     },
     {
-      id: "solid",
-      label: "Solid",
-      fileName: `${base}.tsx`,
-      lang: "tsx",
-      source: makeStandalone(
-        base,
-        read(base, `${base}.solid.tsx`),
-        engine,
-        "solid",
-      ),
-    },
-    {
       id: "vue",
       label: "Vue",
       fileName: `${base}.vue`,
@@ -238,6 +231,18 @@ export function getComponentSources(component: string): ComponentSource[] {
         read(base, `${base}.svelte`),
         engine,
         "svelte",
+      ),
+    },
+    {
+      id: "solid",
+      label: "Solid",
+      fileName: `${base}.tsx`,
+      lang: "tsx",
+      source: makeStandalone(
+        base,
+        read(base, `${base}.solid.tsx`),
+        engine,
+        "solid",
       ),
     },
     {
@@ -269,7 +274,7 @@ export interface RegistryItem {
 }
 
 export const REGISTRY_ITEMS = Object.keys(COMPONENTS).flatMap((component) =>
-  (["react", "solid", "vue", "svelte", "vanilla"] as const).map(
+  (["react", "vue", "svelte", "solid", "vanilla"] as const).map(
     (flavor) => `${component}-${flavor}`,
   ),
 );

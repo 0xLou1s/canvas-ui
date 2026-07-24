@@ -32,21 +32,6 @@ export default function Page() {
 }`,
   },
   {
-    id: "solid",
-    label: "Solid",
-    fileName: "App.tsx",
-    lang: "tsx",
-    source: `import { Liquid } from "@/components/canvasui/Liquid";
-
-export default function App() {
-  return (
-    <Liquid rainbow style={{ height: "480px" }}>
-      <YourContent />
-    </Liquid>
-  );
-}`,
-  },
-  {
     id: "vue",
     label: "Vue",
     fileName: "App.vue",
@@ -73,6 +58,21 @@ import Liquid from "@/components/canvasui/Liquid.vue";
 <Liquid rainbow>
   <YourContent />
 </Liquid>`,
+  },
+  {
+    id: "solid",
+    label: "Solid",
+    fileName: "App.tsx",
+    lang: "tsx",
+    source: `import { Liquid } from "@/components/canvasui/Liquid";
+
+export default function App() {
+  return (
+    <Liquid rainbow style={{ height: "480px" }}>
+      <YourContent />
+    </Liquid>
+  );
+}`,
   },
   {
     id: "vanilla",
@@ -113,7 +113,7 @@ Beyond that, TypeScript is recommended, since every file ships as typed source. 
 
 ## Install with the CLI
 
-Every component has a registry entry per framework (react, solid, vue, svelte, vanilla):
+Every component has a registry entry per framework (react, vue, svelte, solid, vanilla):
 
 \`\`\`sh
 npx shadcn@latest add @canvas-ui/liquid-react

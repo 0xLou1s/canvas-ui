@@ -13,9 +13,9 @@ const MANAGERS = [
 
 const FRAMEWORKS = [
   { id: "react", label: "React" },
-  { id: "solid", label: "Solid" },
   { id: "vue", label: "Vue" },
   { id: "svelte", label: "Svelte" },
+  { id: "solid", label: "Solid" },
   { id: "vanilla", label: "Vanilla" },
 ] as const;
 
