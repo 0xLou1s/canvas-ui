@@ -139,6 +139,7 @@ export default async function PeelPage() {
         variants={[...variants]}
         installItem="peel"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={<PeelDemo />}
       />

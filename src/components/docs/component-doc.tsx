@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
+import { HtmlInCanvasBanner } from "@/components/common/html-in-canvas-banner";
 import { ApiReference, type ApiProp } from "@/components/docs/api-reference";
 import { CodeTabs, type CodeVariant } from "@/components/docs/code-tabs";
 import { CopyMenu } from "@/components/docs/copy-menu";
@@ -23,6 +24,12 @@ export interface ComponentDocProps {
   installItem: string;
   /** Small tag chips shown under the description, e.g. ["html-in-canvas"]. */
   tags?: string[];
+  /**
+   * Show a warning above the demo when Chrome's HTML-in-Canvas flag is off.
+   * Set this only for effects that don't render without the flag — not for
+   * effects that degrade to a usable fallback.
+   */
+  requiresHtmlInCanvas?: boolean;
   /** Props table shown in the API reference section. */
   apiReference?: ApiProp[];
 }
@@ -36,6 +43,7 @@ export function ComponentDoc({
   installItem,
   tags,
   apiReference,
+  requiresHtmlInCanvas = false,
 }: ComponentDocProps) {
   const { dependencies, devDependencies } =
     getComponentDependencies(installItem);
@@ -73,6 +81,8 @@ export function ComponentDoc({
           demoSource={demoSource}
         />
       </div>
+
+      {requiresHtmlInCanvas ? <HtmlInCanvasBanner /> : null}
 
       {preview ? (
         <section className="mt-8" aria-label="Preview">

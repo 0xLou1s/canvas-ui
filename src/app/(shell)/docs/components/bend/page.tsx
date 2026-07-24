@@ -119,6 +119,7 @@ export default async function BendPage() {
         variants={[...variants]}
         installItem="bend"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection

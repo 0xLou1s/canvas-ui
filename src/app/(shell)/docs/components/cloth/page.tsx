@@ -132,6 +132,7 @@ export default async function ClothPage() {
         variants={[...variants]}
         installItem="cloth"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection

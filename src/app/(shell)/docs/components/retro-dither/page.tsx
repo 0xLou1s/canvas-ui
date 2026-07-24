@@ -132,6 +132,7 @@ export default async function RetroDitherPage() {
         variants={[...variants]}
         installItem="retro-dither"
         tags={["html-in-canvas"]}
+        requiresHtmlInCanvas
         apiReference={API_REFERENCE}
         beforeInstall={
           <DemoImageSection
