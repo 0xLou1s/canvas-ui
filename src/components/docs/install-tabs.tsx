@@ -1,8 +1,8 @@
 "use client";
 
 import { CopyButton } from "@/components/docs/copy-button";
+import { ChoiceSelect } from "@/components/docs/choice-select";
 import { usePreference } from "@/hooks/use-preference";
-import { cn } from "@/lib/utils";
 
 const MANAGERS = [
   { id: "npm", label: "npm", run: "npx" },
@@ -13,6 +13,7 @@ const MANAGERS = [
 
 const FRAMEWORKS = [
   { id: "react", label: "React" },
+  { id: "solid", label: "Solid" },
   { id: "vue", label: "Vue" },
   { id: "svelte", label: "Svelte" },
   { id: "vanilla", label: "Vanilla" },
@@ -44,64 +45,19 @@ export function InstallTabs({ item }: { item: string }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border/60">
       <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-2">
-        <div
-          role="tablist"
-          aria-label="Package manager"
-          className="flex items-center"
-        >
-          {MANAGERS.map((entry) => (
-            <button
-              key={entry.id}
-              role="tab"
-              type="button"
-              aria-selected={entry.id === manager.id}
-              onClick={() => setManagerId(entry.id)}
-              className={cn(
-                "relative px-3 py-2 text-[13px] transition-colors duration-150",
-                entry.id === manager.id
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {entry.label}
-              <span
-                className={cn(
-                  "absolute inset-x-3 -bottom-px h-px bg-foreground transition-opacity duration-150",
-                  entry.id === manager.id ? "opacity-100" : "opacity-0",
-                )}
-              />
-            </button>
-          ))}
-        </div>
-        <div
-          role="tablist"
-          aria-label="Framework"
-          className="flex items-center"
-        >
-          {FRAMEWORKS.map((entry) => (
-            <button
-              key={entry.id}
-              role="tab"
-              type="button"
-              aria-selected={entry.id === frameworkId}
-              onClick={() => setFrameworkId(entry.id)}
-              className={cn(
-                "relative px-3 py-2 text-[13px] transition-colors duration-150",
-                entry.id === frameworkId
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {entry.label}
-              <span
-                className={cn(
-                  "absolute inset-x-3 -bottom-px h-px bg-foreground transition-opacity duration-150",
-                  entry.id === frameworkId ? "opacity-100" : "opacity-0",
-                )}
-              />
-            </button>
-          ))}
-        </div>
+        <ChoiceSelect
+          label="Package manager"
+          options={MANAGERS}
+          value={manager.id}
+          onValueChange={setManagerId}
+        />
+        <ChoiceSelect
+          label="Framework"
+          options={FRAMEWORKS}
+          value={frameworkId}
+          onValueChange={setFrameworkId}
+          align="end"
+        />
       </div>
       <div className="flex items-center justify-between gap-3 py-1.5 pr-1.5 pl-4">
         <code className="overflow-x-auto text-[13px] whitespace-nowrap text-foreground/90">

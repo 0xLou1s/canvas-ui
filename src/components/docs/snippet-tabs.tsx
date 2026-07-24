@@ -2,9 +2,9 @@
 
 import type { ReactNode } from "react";
 
+import { ChoiceSelect } from "@/components/docs/choice-select";
 import { CopyButton } from "@/components/docs/copy-button";
 import { usePreference } from "@/hooks/use-preference";
-import { cn } from "@/lib/utils";
 
 export interface SnippetTab {
   /** Short identifier, e.g. "claude". */
@@ -43,32 +43,13 @@ export function SnippetTabs({
   return (
     <div>
       <div className="not-typeset overflow-hidden rounded-xl border border-border/60">
-        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 pr-1.5 pl-2">
-          <div role="tablist" aria-label="Client" className="flex items-center">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                role="tab"
-                type="button"
-                aria-selected={tab.id === active.id}
-                onClick={() => setActiveId(tab.id)}
-                className={cn(
-                  "relative shrink-0 px-3 py-2 text-[13px] transition-colors duration-150",
-                  tab.id === active.id
-                    ? "font-medium text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {tab.label}
-                <span
-                  className={cn(
-                    "absolute inset-x-3 -bottom-px h-px bg-foreground transition-opacity duration-150",
-                    tab.id === active.id ? "opacity-100" : "opacity-0",
-                  )}
-                />
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 pr-1.5 pl-2">
+          <ChoiceSelect
+            label="Client"
+            options={tabs}
+            value={active.id}
+            onValueChange={setActiveId}
+          />
           {active.html ? <CopyButton text={active.source} /> : null}
         </div>
         {active.html ? (

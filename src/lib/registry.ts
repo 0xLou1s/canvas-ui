@@ -156,10 +156,10 @@ function makeStandalone(
   base: string,
   wrapper: string,
   engine: string,
-  kind: "react" | "vue" | "svelte",
+  kind: "react" | "solid" | "vue" | "svelte",
 ) {
   const body = engine.trimEnd();
-  if (kind === "react") {
+  if (kind === "react" || kind === "solid") {
     return wrapper
       .replace(vanillaImport(base), body + "\n\n")
       .replace(/\nexport type \{[^}]*\};\n?/, "\n");
@@ -172,7 +172,7 @@ function makeStandalone(
 }
 
 export interface ComponentSource {
-  id: "react" | "vue" | "svelte" | "vanilla";
+  id: "react" | "solid" | "vue" | "svelte" | "vanilla";
   label: string;
   fileName: string;
   lang: "tsx" | "vue" | "svelte" | "typescript";
@@ -208,6 +208,18 @@ export function getComponentSources(component: string): ComponentSource[] {
       fileName: `${base}.tsx`,
       lang: "tsx",
       source: makeStandalone(base, read(base, `${base}.tsx`), engine, "react"),
+    },
+    {
+      id: "solid",
+      label: "Solid",
+      fileName: `${base}.tsx`,
+      lang: "tsx",
+      source: makeStandalone(
+        base,
+        read(base, `${base}.solid.tsx`),
+        engine,
+        "solid",
+      ),
     },
     {
       id: "vue",
@@ -257,13 +269,13 @@ export interface RegistryItem {
 }
 
 export const REGISTRY_ITEMS = Object.keys(COMPONENTS).flatMap((component) =>
-  (["react", "vue", "svelte", "vanilla"] as const).map(
+  (["react", "solid", "vue", "svelte", "vanilla"] as const).map(
     (flavor) => `${component}-${flavor}`,
   ),
 );
 
 export function getRegistryItem(name: string): RegistryItem | null {
-  const match = /^([a-z-]+)-(react|vue|svelte|vanilla)$/.exec(name);
+  const match = /^([a-z-]+)-(react|solid|vue|svelte|vanilla)$/.exec(name);
   if (!match) return null;
   const [, component, id] = match;
   const def = COMPONENTS[component];
@@ -280,7 +292,10 @@ export function getRegistryItem(name: string): RegistryItem | null {
     type: "registry:component",
     title: `${def.base} (${source.label})`,
     description: def.description,
-    dependencies: def.dependencies ?? [],
+    dependencies:
+      id === "solid"
+        ? ["solid-js", ...(def.dependencies ?? [])]
+        : (def.dependencies ?? []),
     devDependencies: def.devDependencies ?? [],
     files: [
       {

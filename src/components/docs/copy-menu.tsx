@@ -46,6 +46,7 @@ interface CopyMenuProps {
 
 const LANG_BY_ID: Record<string, string> = {
   react: "tsx",
+  solid: "tsx",
   vue: "vue",
   svelte: "svelte",
   vanilla: "ts",
