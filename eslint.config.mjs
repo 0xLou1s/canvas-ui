@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
       "react-hooks/refs": "off",
     },
   },
+  {
+    files: ["src/lib/**/*.preact.tsx"],
+    rules: {
+      "react-hooks/refs": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     "prompts/**",
