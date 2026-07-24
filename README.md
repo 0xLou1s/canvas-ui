@@ -34,7 +34,7 @@ See the [installation guide](https://canvasui.dev/docs/installation) for manual 
 
 ## Browser support
 
-The full html-in-canvas experience currently requires Chrome or Edge 140+ with the `#enable-experimental-web-platform-features` flag. Everywhere else, components automatically fall back to WebGL overlay rendering. Details in the [docs](https://canvasui.dev/docs).
+The full html-in-canvas experience currently requires Chrome or Edge 140+ with the `chrome://flags/#canvas-draw-element` flag enabled (for production sites, an [origin trial](https://canvasui.dev/docs/installation) token is available). Everywhere else, components automatically fall back to WebGL overlay rendering. Details in the [docs](https://canvasui.dev/docs).
 
 ## Development
 
