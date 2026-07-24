@@ -134,7 +134,7 @@ Every component has a registry entry per framework (react, vue, svelte, solid, v
 npx shadcn@latest add @canvas-ui/liquid-react
 \`\`\`
 
-The CLI drops the file into components/canvasui/ in your project. If you have not used shadcn before, run \`npx shadcn@latest init\` first.
+The CLI drops the file into components/canvasui/ in your project (Svelte: src/lib/components/canvasui/, so the \`$lib\` import resolves). If you have not used shadcn before, run \`npx shadcn@latest init\` first.
 
 ## Install manually
 
@@ -229,8 +229,9 @@ export default async function InstallationPage() {
         </div>
         <p>
           The CLI drops the file into <code>components/canvasui/</code> in your
-          project. If you have not used shadcn before, run{" "}
-          <code>npx shadcn@latest init</code> first.
+          project (Svelte: <code>src/lib/components/canvasui/</code>, so the{" "}
+          <code>$lib</code> import resolves). If you have not used shadcn
+          before, run <code>npx shadcn@latest init</code> first.
         </p>
 
         <h2>Install manually</h2>

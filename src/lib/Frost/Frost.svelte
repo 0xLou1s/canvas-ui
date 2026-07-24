@@ -1,3 +1,12 @@
+<script module lang="ts">
+  // Experimental html-in-canvas attribute, not yet in svelte/elements.
+  declare module "svelte/elements" {
+    interface HTMLCanvasAttributes {
+      layoutsubtree?: string;
+    }
+  }
+</script>
+
 <script lang="ts">
   import { onMount, tick } from "svelte";
 

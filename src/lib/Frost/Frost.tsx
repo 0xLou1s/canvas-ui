@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -23,6 +24,12 @@ export interface FrostProps extends FrostOptions {
 
 const emptySubscribe = () => () => {};
 
+// Layout effect so the instance (and its synchronous first content capture)
+// is created before the browser paints the frame where hydration moves the
+// content into the canvas subtree — otherwise the page flashes blank.
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 export function Frost({ children, className, style, ...options }: FrostProps) {
   const sourceRef = useRef<HTMLCanvasElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -38,7 +45,7 @@ export function Frost({ children, className, style, ...options }: FrostProps) {
   );
   const native = supported && !failed;
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const source = sourceRef.current;
     const content = contentRef.current;
     const output = outputRef.current;
