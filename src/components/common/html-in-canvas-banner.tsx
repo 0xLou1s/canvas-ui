@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { TriangleAlert } from "lucide-react";
+import { Check, Copy, Info } from "lucide-react";
 
 import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/accordion";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const FLAG_PATH = "flags/#canvas-draw-element";
 const CHROME_FLAG = `chrome://${FLAG_PATH}`;
@@ -103,48 +102,48 @@ export function HtmlInCanvasBanner() {
   return (
     <Accordion className="not-typeset mt-6 mb-4 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
       <AccordionItem value="enable">
-        <AccordionHeader render={<div />} className="flex-wrap items-center gap-x-2.5 gap-y-1.5">
-          <TriangleAlert aria-hidden className="size-4 shrink-0 text-amber-500" />
-          <span className="text-[13px] leading-5 text-amber-600 dark:text-amber-400/90">
-            {chromium ? (
-              <>
-                This effect only works with {browser.name}&apos;s <Emph>HTML-in-Canvas</Emph> flag enabled.
-              </>
-            ) : unsupported ? (
-              <>
-                This effect needs <Emph>HTML-in-Canvas</Emph>, which {browser.name} doesn&apos;t support.
-              </>
-            ) : (
-              <>
-                Your browser doesn&apos;t have <Emph>HTML-in-Canvas</Emph> enabled.
-              </>
-            )}
-          </span>
-          <AccordionTrigger className="ml-auto text-[13px] font-medium text-foreground hover:text-foreground/80">{unsupported ? "See how" : "Enable it"}</AccordionTrigger>
+        <AccordionHeader render={<div />} className="flex">
+          <AccordionTrigger className="w-full flex-wrap items-start gap-x-2.5 gap-y-1.5 text-left [&>svg]:mt-[3px] [&>svg]:ml-auto sm:[&>svg]:ml-0">
+            <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1 text-[13px] leading-5 text-muted-foreground">
+              {chromium ? (
+                <>This effect only works with {browser.name}&apos;s HTML-in-Canvas flag enabled.</>
+              ) : unsupported ? (
+                <>This effect needs HTML-in-Canvas, which {browser.name} doesn&apos;t support.</>
+              ) : (
+                <>Your browser doesn&apos;t have HTML-in-Canvas enabled.</>
+              )}
+            </span>
+            <span className="ml-auto hidden shrink-0 text-[13px] leading-5 font-medium text-muted-foreground transition-colors group-hover:text-foreground sm:inline">{unsupported ? "See how" : "How to enable"}</span>
+          </AccordionTrigger>
         </AccordionHeader>
 
         <AccordionPanel>
-          <div className="mt-3 space-y-3 border-t border-border/60 pt-3">
+          <div className="mt-3 space-y-3">
             {unsupported ? (
               <p className="text-[13px] leading-5 text-muted-foreground">
                 HTML-in-Canvas is an experimental Chromium feature that {browser.name} doesn&apos;t support. To see this effect, open this page in Chrome, Brave, or Edge:
               </p>
             ) : null}
 
-            <ol className="space-y-3">
-              <li className="flex gap-2.5 text-[13px] leading-6 text-muted-foreground">
+            <ol className="space-y-2">
+              <li className="flex gap-3 text-[13px] leading-6 text-muted-foreground">
                 <StepMarker n={1} />
                 <span className="min-w-0 flex-1">
-                  Copy <CopyFlag flag={stepsFlag} /> and paste it into your browser&apos;s address bar.
+                  <span className="sm:hidden">Copy this and paste it into your browser&apos;s address bar:</span>
+                  <span className="hidden sm:inline">
+                    Copy <CopyFlag flag={stepsFlag} /> and paste it into your browser&apos;s address bar.
+                  </span>
+                  <span className="mt-1.5 block sm:hidden">
+                    <CopyFlag flag={stepsFlag} />
+                  </span>
                 </span>
               </li>
-              <li className="flex items-center gap-2.5 text-[13px] leading-5 text-muted-foreground">
+              <li className="flex gap-3 text-[13px] leading-6 text-muted-foreground">
                 <StepMarker n={2} />
-                <span className="min-w-0 flex-1">
-                  Set the <Emph>HTML-in-Canvas</Emph> dropdown to <Emph>Enabled</Emph>.
-                </span>
+                <span className="min-w-0 flex-1">Set the HTML-in-Canvas dropdown to Enabled.</span>
               </li>
-              <li className="flex items-center gap-2.5 text-[13px] leading-5 text-muted-foreground">
+              <li className="flex gap-3 text-[13px] leading-6 text-muted-foreground">
                 <StepMarker n={3} />
                 <span className="min-w-0 flex-1">{relaunch}, then reload this page.</span>
               </li>
@@ -156,14 +155,8 @@ export function HtmlInCanvasBanner() {
   );
 }
 
-function Emph({ children }: { children: React.ReactNode }) {
-  return <span className="text-foreground">{children}</span>;
-}
-
 function CopyFlag({ flag }: { flag: string }) {
-  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const copiedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -172,49 +165,44 @@ function CopyFlag({ flag }: { flag: string }) {
     };
   }, []);
 
-  const onOpenChange = (next: boolean) => {
-    if (!next && copiedRef.current) return;
-    setOpen(next);
-  };
-
   const copy = () => {
-    // Only confirm "Copied" once the write actually succeeds.
+    // Only confirm once the write actually succeeds.
     navigator.clipboard
       .writeText(flag)
       .then(() => {
-        copiedRef.current = true;
         setCopied(true);
-        setOpen(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          copiedRef.current = false;
-          setCopied(false);
-          setOpen(false);
-        }, 1400);
+        timeoutRef.current = setTimeout(() => setCopied(false), 1400);
       })
       .catch(() => {});
   };
 
   return (
-    <Tooltip open={open} onOpenChange={onOpenChange}>
-      <TooltipTrigger
-        onClick={copy}
-        aria-label={`Copy ${flag} to clipboard`}
-        className="cursor-pointer rounded bg-muted/60 px-1.5 py-0.5 align-middle font-mono text-[12px] text-foreground/90 transition-colors duration-150 hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-      >
-        {flag}
-      </TooltipTrigger>
-      <TooltipContent>{copied ? "Copied" : "Click to copy"}</TooltipContent>
-    </Tooltip>
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={`Copy ${flag} to clipboard`}
+      className="mr-1.5 ml-0.5 inline cursor-pointer rounded bg-muted/60 box-decoration-clone px-1.5 py-0.5 align-middle font-mono text-[12px] break-all text-foreground/90 transition-colors duration-150 hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+    >
+      {flag}
+      <span aria-hidden className="relative ml-1.5 inline-flex size-3 translate-y-px">
+        <Copy
+          className={`absolute inset-0 size-3 text-muted-foreground transition-all duration-150 ease-out motion-reduce:transition-none ${copied ? "scale-50 opacity-0" : "scale-100 opacity-100"}`}
+        />
+        <Check
+          className={`absolute inset-0 size-3 text-muted-foreground transition-all duration-150 ease-out motion-reduce:transition-none ${copied ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}
+        />
+      </span>
+      <span aria-live="polite" className="sr-only">
+        {copied ? "Copied" : ""}
+      </span>
+    </button>
   );
 }
 
 function StepMarker({ n }: { n: number }) {
   return (
-    <span
-      aria-hidden
-      className="mt-px inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background text-[11px] font-medium text-muted-foreground"
-    >
+    <span aria-hidden className="w-3 shrink-0 text-right text-[12px] leading-6 tabular-nums text-muted-foreground/50 select-none">
       {n}
     </span>
   );

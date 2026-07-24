@@ -72,7 +72,7 @@ export function Hero() {
               <div className="relative isolate overflow-hidden rounded-2xl border border-white/10 bg-black/25 p-5 sm:p-6">
                 <div
                   aria-hidden
-                  className="absolute inset-0 -z-10 backdrop-blur-md"
+                  className="absolute inset-0 -z-10 rounded-[inherit] backdrop-blur-md"
                 />
                 <p className="text-sm font-medium sm:text-base">Components</p>
                 <p className="mt-8 text-4xl font-medium tracking-tight sm:mt-12 sm:text-6xl">
@@ -85,7 +85,7 @@ export function Hero() {
               <div className="relative isolate overflow-hidden rounded-2xl border border-white/10 bg-black/25 p-5 sm:p-6">
                 <div
                   aria-hidden
-                  className="absolute inset-0 -z-10 backdrop-blur-md"
+                  className="absolute inset-0 -z-10 rounded-[inherit] backdrop-blur-md"
                 />
                 <p className="text-sm font-medium sm:text-base">Open source</p>
                 <p className="mt-8 text-4xl font-medium tracking-tight sm:mt-12 sm:text-6xl">
@@ -98,7 +98,7 @@ export function Hero() {
               <div className="col-span-2 relative isolate hidden overflow-hidden rounded-2xl border border-white/10 bg-black/25 p-5 sm:block sm:p-6">
                 <div
                   aria-hidden
-                  className="absolute inset-0 -z-10 backdrop-blur-md"
+                  className="absolute inset-0 -z-10 rounded-[inherit] backdrop-blur-md"
                 />
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium sm:text-base">Install</p>
