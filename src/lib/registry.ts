@@ -290,7 +290,13 @@ export function getRegistryItem(name: string): RegistryItem | null {
   );
   if (!source) return null;
 
-  const target = `components/canvasui/${source.fileName}`;
+  // Svelte installs under src/lib so the idiomatic `$lib/components/canvasui/…`
+  // import works in SvelteKit; the CLI otherwise drops the file in
+  // (src/)components/canvasui, which no SvelteKit alias points at.
+  const target =
+    id === "svelte"
+      ? `src/lib/components/canvasui/${source.fileName}`
+      : `components/canvasui/${source.fileName}`;
   return {
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
     name,

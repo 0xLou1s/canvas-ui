@@ -28,7 +28,7 @@ Add a component with the shadcn CLI (run `npx shadcn@latest init` first if you h
 npx shadcn@latest add @canvas-ui/liquid-react
 ```
 
-Swap `liquid` for any component and `react` for `solid`, `vue`, `svelte`, or `vanilla`. The source lands in `components/canvasui/` in your project, yours to edit.
+Swap `liquid` for any component and `react` for `solid`, `vue`, `svelte`, or `vanilla`. The source lands in `components/canvasui/` in your project (Svelte: `src/lib/components/canvasui/`), yours to edit.
 
 See the [installation guide](https://canvasui.dev/docs/installation) for manual setup and framework notes.
 
