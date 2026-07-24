@@ -173,6 +173,12 @@ function makeStandalone(
   if (kind === "vue") {
     return `<script lang="ts">\n${body}\n</script>\n\n${stripped}`;
   }
+  // A component may only have one module script, so when the wrapper already
+  // has one (e.g. for ambient type declarations), inline the engine into it.
+  const moduleTag = '<script module lang="ts">';
+  if (stripped.includes(moduleTag)) {
+    return stripped.replace(moduleTag, `${moduleTag}\n${body}\n`);
+  }
   return `<script module lang="ts">\n${body}\n</script>\n\n${stripped}`;
 }
 
