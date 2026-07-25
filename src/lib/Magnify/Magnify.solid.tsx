@@ -16,6 +16,7 @@ import {
   supportsHtmlInCanvas,
   type MagnifyInstance,
   type MagnifyOptions,
+  type ZoomModifier,
 } from "./MagnifyVanilla";
 
 declare module "solid-js" {
@@ -129,6 +130,6 @@ export function Magnify(props: MagnifyProps) {
   );
 }
 
-export type { MagnifyInstance, MagnifyOptions };
+export type { MagnifyInstance, MagnifyOptions, ZoomModifier };
 
 export default Magnify;

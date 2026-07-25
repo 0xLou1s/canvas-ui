@@ -32,6 +32,20 @@ const API_REFERENCE: ApiProp[] = [
     defaultValue: "1.5",
   },
   {
+    name: "scrollZoom",
+    description:
+      "Let the wheel or trackpad adjust the magnification while zoomModifier is held.",
+    type: "boolean",
+    defaultValue: "false",
+  },
+  {
+    name: "zoomModifier",
+    description:
+      'Key held to zoom instead of scroll. "none" captures every wheel event over the content.',
+    type: '"shift" | "alt" | "ctrl" | "meta" | "none"',
+    defaultValue: '"shift"',
+  },
+  {
     name: "color",
     description:
       "HUD accent color as RGB in the 0 to 1 range. Tints the reticle, readout, and ripple outline.",

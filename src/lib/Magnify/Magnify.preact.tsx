@@ -8,6 +8,7 @@ import {
   supportsHtmlInCanvas,
   type MagnifyInstance,
   type MagnifyOptions,
+  type ZoomModifier,
 } from "./MagnifyVanilla";
 
 function useSyncExternalStore<T>(
@@ -43,10 +44,7 @@ export function Magnify({
   const [initialOptions] = useState(options);
   const [failed, setFailed] = useState(false);
 
-  const supported = useSyncExternalStore(
-    emptySubscribe,
-    supportsHtmlInCanvas,
-  );
+  const supported = useSyncExternalStore(emptySubscribe, supportsHtmlInCanvas);
   const native = supported && !failed;
 
   const sourceRefCallback = (el: HTMLCanvasElement | null) => {
@@ -126,6 +124,6 @@ export function Magnify({
   );
 }
 
-export type { MagnifyInstance, MagnifyOptions };
+export type { MagnifyInstance, MagnifyOptions, ZoomModifier };
 
 export default Magnify;

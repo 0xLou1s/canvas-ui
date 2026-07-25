@@ -13,6 +13,7 @@ import {
   supportsHtmlInCanvas,
   type MagnifyInstance,
   type MagnifyOptions,
+  type ZoomModifier,
 } from "./MagnifyVanilla";
 
 export interface MagnifyProps extends MagnifyOptions {
@@ -118,6 +119,6 @@ export function Magnify({
   );
 }
 
-export type { MagnifyInstance, MagnifyOptions };
+export type { MagnifyInstance, MagnifyOptions, ZoomModifier };
 
 export default Magnify;

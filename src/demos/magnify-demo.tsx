@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 
-import { color, scrub, toggle } from "@/components/demos/control-schema";
+import { color, radio, scrub, toggle } from "@/components/demos/control-schema";
 import {
   DemoControls,
   useDemoScrollbarGutter,
@@ -29,6 +29,18 @@ const CONTROLS = {
   grid: toggle("Grid", false),
   readout: toggle("Readout", true),
   ripples: toggle("Click ripples", true),
+  scrollZoom: toggle("Scroll zoom", false),
+  zoomModifier: radio(
+    "Hold",
+    "shift",
+    [
+      { value: "shift", label: "Shift" },
+      { value: "alt", label: "Alt" },
+      { value: "ctrl", label: "Ctrl" },
+      { value: "none", label: "None" },
+    ],
+    { when: (values) => values.scrollZoom === true },
+  ),
   size: scrub("Size", 140, { min: 60, max: 260, step: 4, decimals: 0 }),
   zoom: scrub("Zoom", 1.5, { min: 1, max: 4, step: 0.05 }),
   follow: scrub("Follow", 0.25, { min: 0.02, max: 1, step: 0.02 }),
@@ -76,6 +88,7 @@ export function MagnifyDemo({ children }: { children: ReactNode }) {
     grid,
     readout,
     ripples,
+    scrollZoom,
     ...values
   } = controls.values;
   const toggles = {
@@ -87,6 +100,7 @@ export function MagnifyDemo({ children }: { children: ReactNode }) {
     grid,
     readout,
     ripples,
+    scrollZoom,
   };
 
   return (

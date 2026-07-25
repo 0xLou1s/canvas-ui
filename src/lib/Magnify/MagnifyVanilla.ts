@@ -1,8 +1,14 @@
+export type ZoomModifier = "shift" | "alt" | "ctrl" | "meta" | "none";
+
 export interface MagnifyOptions {
   /** Lens radius in CSS pixels. */
   size?: number;
   /** Magnification inside the lens (1 to 4). */
   zoom?: number;
+  /** Let the wheel or trackpad adjust the magnification while zoomModifier is held. */
+  scrollZoom?: boolean;
+  /** Key held to zoom instead of scroll. "none" captures every wheel event over the content. */
+  zoomModifier?: ZoomModifier;
   /** HUD accent color as RGB in the 0 to 1 range. Tints the reticle, readout, and ripple outline. */
   color?: [number, number, number];
   /** How quickly the lens follows the cursor (0 to 1). 1 snaps to it. */
@@ -64,6 +70,8 @@ export interface MagnifyInstance {
 const DEFAULTS: Required<MagnifyOptions> = {
   size: 140,
   zoom: 1.5,
+  scrollZoom: false,
+  zoomModifier: "shift",
   color: [0.8, 0.8, 0.8],
   follow: 0.25,
   hud: 0.8,
@@ -86,6 +94,22 @@ const DEFAULTS: Required<MagnifyOptions> = {
 };
 
 const MAX_RIPPLES = 6;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+const WHEEL_LINE = 16;
+const ZOOM_SENSITIVITY = 0.0022;
+
+function clampZoom(value: number) {
+  return Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
+}
+
+const MODIFIER_HELD: Record<ZoomModifier, (event: WheelEvent) => boolean> = {
+  shift: (event) => event.shiftKey,
+  alt: (event) => event.altKey,
+  ctrl: (event) => event.ctrlKey,
+  meta: (event) => event.metaKey,
+  none: () => true,
+};
 
 type PaintableCanvas = HTMLCanvasElement & {
   onpaint?: (() => void) | null;
@@ -430,6 +454,8 @@ export function createMagnify(
   let presence = 0;
   let presenceTarget = 0;
   let hasPointer = false;
+  let zoomTarget = clampZoom(config.zoom);
+  let zoomValue = zoomTarget;
 
   const ripples: { x: number; y: number; r0: number; age: number }[] = [];
   const rippleData = new Float32Array(MAX_RIPPLES * 4);
@@ -455,7 +481,7 @@ export function createMagnify(
     readout.textContent =
       `X ${String(Math.round(posX)).padStart(4, " ")}\n` +
       `Y ${String(Math.round(posY)).padStart(4, " ")}\n` +
-      `${config.zoom.toFixed(1)}X MAG\n` +
+      `${zoomValue.toFixed(1)}X MAG\n` +
       `R ${Math.round(config.size)}PX ${blink}`;
   }
 
@@ -508,7 +534,7 @@ export function createMagnify(
     gl!.uniform1f(uniforms.uDpr, dpr);
     gl!.uniform2f(uniforms.uCenter, cx, cy);
     gl!.uniform1f(uniforms.uRadius, R * dpr);
-    gl!.uniform1f(uniforms.uZoom, Math.min(Math.max(config.zoom, 1), 4));
+    gl!.uniform1f(uniforms.uZoom, zoomValue);
     gl!.uniform1f(uniforms.uAlpha, alpha);
     gl!.uniform3f(
       uniforms.uColor,
@@ -564,6 +590,7 @@ export function createMagnify(
     posX += (targetX - posX) * kPos;
     posY += (targetY - posY) * kPos;
     presence += (presenceTarget - presence) * kScale;
+    zoomValue += (zoomTarget - zoomValue) * kScale;
 
     for (const ripple of ripples) ripple.age += delta;
     for (let i = ripples.length - 1; i >= 0; i--) {
@@ -578,11 +605,13 @@ export function createMagnify(
     const settled =
       Math.abs(targetX - posX) < 0.1 &&
       Math.abs(targetY - posY) < 0.1 &&
-      Math.abs(presenceTarget - presence) < 0.002;
+      Math.abs(presenceTarget - presence) < 0.002 &&
+      Math.abs(zoomTarget - zoomValue) < 0.002;
     if (settled && !contentDirty && ripples.length === 0) {
       posX = targetX;
       posY = targetY;
       presence = presenceTarget;
+      zoomValue = zoomTarget;
       running = false;
       return;
     }
@@ -634,6 +663,49 @@ export function createMagnify(
   content.addEventListener("pointerleave", onPointerLeave, { passive: true });
   content.addEventListener("pointerdown", onPointerDown, { passive: true });
 
+  function onWheel(event: WheelEvent) {
+    const held = MODIFIER_HELD[config.zoomModifier] ?? MODIFIER_HELD.shift;
+    if (!held(event)) return;
+    const rect = output.getBoundingClientRect();
+    if (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const unit =
+      event.deltaMode === 1
+        ? WHEEL_LINE
+        : event.deltaMode === 2
+          ? output.clientHeight
+          : 1;
+    const delta =
+      Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+        ? event.deltaY
+        : event.deltaX;
+    zoomTarget = clampZoom(
+      zoomTarget * Math.exp(-delta * unit * ZOOM_SENSITIVITY),
+    );
+    start();
+  }
+
+  const WHEEL_OPTIONS: AddEventListenerOptions = {
+    passive: false,
+    capture: true,
+  };
+
+  let wheelBound = false;
+  function syncWheel() {
+    if (config.scrollZoom === wheelBound) return;
+    wheelBound = config.scrollZoom;
+    if (wheelBound) window.addEventListener("wheel", onWheel, WHEEL_OPTIONS);
+    else window.removeEventListener("wheel", onWheel, WHEEL_OPTIONS);
+  }
+  syncWheel();
+
   function onScroll() {
     start();
   }
@@ -660,7 +732,12 @@ export function createMagnify(
 
   return {
     setOptions(next) {
+      const previousZoom = config.zoom;
       Object.assign(config, next);
+      if (!config.scrollZoom || config.zoom !== previousZoom) {
+        zoomTarget = clampZoom(config.zoom);
+      }
+      syncWheel();
       start();
     },
     resize() {
@@ -673,6 +750,7 @@ export function createMagnify(
       content.removeEventListener("pointermove", onPointerMove);
       content.removeEventListener("pointerleave", onPointerLeave);
       content.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("wheel", onWheel, WHEEL_OPTIONS);
       content.removeEventListener("scroll", onScroll);
       observer.disconnect();
       intersection.disconnect();
