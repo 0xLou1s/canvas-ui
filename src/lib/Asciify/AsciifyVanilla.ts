@@ -447,7 +447,16 @@ function paintFallbackText(
   ctx.fillStyle = style.color;
   ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
   ctx.textBaseline = "top";
-  ctx.textAlign = style.textAlign === "center" ? "center" : "left";
+  const textAlign: CanvasTextAlign =
+    style.textAlign === "center" ||
+    style.textAlign === "right" ||
+    style.textAlign === "start" ||
+    style.textAlign === "end"
+      ? style.textAlign
+      : "left";
+  const direction: CanvasDirection = style.direction === "rtl" ? "rtl" : "ltr";
+  ctx.textAlign = textAlign;
+  ctx.direction = direction;
 
   for (const node of textNodes) {
     let text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
@@ -464,7 +473,6 @@ function paintFallbackText(
         rect.bottom > rootRect.top &&
         rect.top < rootRect.bottom,
     );
-    range.detach();
     if (rects.length === 0) continue;
 
     const totalWidth = rects.reduce((sum, rect) => sum + rect.width, 0);
@@ -483,10 +491,15 @@ function paintFallbackText(
       const line = text.slice(offset, offset + count).trim();
       offset += count;
       if (!line) continue;
-      const x =
-        style.textAlign === "center"
-          ? rect.left - rootRect.left + rect.width / 2
-          : rect.left - rootRect.left;
+      const anchor =
+        textAlign === "center"
+          ? 0.5
+          : textAlign === "right" ||
+              (textAlign === "end" && direction === "ltr") ||
+              (textAlign === "start" && direction === "rtl")
+            ? 1
+            : 0;
+      const x = rect.left - rootRect.left + rect.width * anchor;
       ctx.fillText(
         line,
         x,

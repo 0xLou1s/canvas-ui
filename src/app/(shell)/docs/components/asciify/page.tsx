@@ -11,7 +11,7 @@ import { DemoImageSection } from "@/demos/demo-image-cycler";
 export const metadata: Metadata = {
   title: "Asciify",
   description:
-    "Redraws visible content as ascii characters in a soft radius around the cursor, using HTML-in-Canvas where available and lightweight viewport snapshots in Firefox. Works in any framework.",
+    "Redraws visible content as ascii characters in a soft radius around the cursor, using HTML-in-Canvas where available and lightweight viewport snapshots in browsers such as Firefox. Works in any framework.",
   alternates: { canonical: "/docs/components/asciify" },
 };
 
