@@ -589,9 +589,14 @@ function shapesFromImage(data: ImageData): THREE.Shape[] {
     mask[i] = data.data[i * 4 + 3] >= ALPHA_THRESHOLD ? 1 : 0;
   }
 
-  let loops = traceContours(mask, width, height)
-    .map((loop) => chaikin(simplifyLoop(loop, 1), 2))
-    .filter((loop) => Math.abs(signedArea(loop)) > 12);
+  const rawLoops = traceContours(mask, width, height);
+  let loops: Point[][] = [];
+  for (const rawLoop of rawLoops) {
+    const loop = chaikin(simplifyLoop(rawLoop, 1), 2);
+    if (Math.abs(signedArea(loop)) > 12) {
+      loops.push(loop);
+    }
+  }
   loops.sort((a, b) => Math.abs(signedArea(b)) - Math.abs(signedArea(a)));
   loops = loops.slice(0, 48);
   if (loops.length === 0) throw new Error("No opaque pixels to trace");

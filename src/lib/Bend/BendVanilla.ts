@@ -735,16 +735,16 @@ export function createBend(
   function setHoverTarget(target: Element | null) {
     if (target === hoverTarget) return;
     hoverTarget = target;
-    const next: Element[] = [];
+    const next = new Set<Element>();
     for (let el: Element | null = target; el; el = el.parentElement) {
-      next.push(el);
+      next.add(el);
       if (el === content) break;
     }
     for (const el of hoverChain) {
-      if (!next.includes(el)) el.removeAttribute(HOVER_ATTR);
+      if (!next.has(el)) el.removeAttribute(HOVER_ATTR);
     }
     for (const el of next) el.setAttribute(HOVER_ATTR, "");
-    hoverChain = next;
+    hoverChain = Array.from(next);
     if (target) {
       content.style.setProperty(
         "--canvasui-cursor",
@@ -823,7 +823,10 @@ export function createBend(
   }
   content.addEventListener("click", onClick, true);
 
-  function caretAt(x: number, y: number): { node: Node; offset: number } | null {
+  function caretAt(
+    x: number,
+    y: number,
+  ): { node: Node; offset: number } | null {
     const doc = document as Document & {
       caretPositionFromPoint?: (
         x: number,
@@ -842,7 +845,10 @@ export function createBend(
   function remapped(event: MouseEvent): { x: number; y: number } | null {
     const rect = output.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return null;
-    const mapped = mapPoint(event.clientX - rect.left, event.clientY - rect.top);
+    const mapped = mapPoint(
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    );
     if (mapped.alpha < 0.5) return null;
     const tx = rect.left + mapped.x;
     const ty = rect.top + mapped.y;
