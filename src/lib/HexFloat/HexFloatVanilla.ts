@@ -1407,16 +1407,16 @@ export function createHexFloat(
   function setHoverTarget(target: Element | null) {
     if (target === hoverTarget) return;
     hoverTarget = target;
-    const next: Element[] = [];
+    const next = new Set<Element>();
     for (let el: Element | null = target; el; el = el.parentElement) {
-      next.push(el);
+      next.add(el);
       if (el === content) break;
     }
     for (const el of hoverChain) {
-      if (!next.includes(el)) el.removeAttribute(HOVER_ATTR);
+      if (!next.has(el)) el.removeAttribute(HOVER_ATTR);
     }
     for (const el of next) el.setAttribute(HOVER_ATTR, "");
-    hoverChain = next;
+    hoverChain = Array.from(next);
     if (target) {
       content.style.setProperty(
         "--canvasui-cursor",
