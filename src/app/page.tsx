@@ -29,12 +29,18 @@ const JSON_LD = {
   },
 };
 
+const htmlSafeJsonStringify = (obj: unknown): string =>
+  JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+
 export default function Home() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: htmlSafeJsonStringify(JSON_LD) }}
       />
       <Navbar />
       <main className="page-enter flex flex-1 flex-col overflow-x-clip">
