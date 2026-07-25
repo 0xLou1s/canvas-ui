@@ -88,7 +88,7 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
   {
     slug: "dithered-object",
     name: "Dithered Object",
-    description: "A 3D model rendered through a 1-bit dither.",
+    description: "A 3D model or image rendered through a 1-bit dither.",
     kind: "custom",
     Component: load(() =>
       import("@/components/playground/entries/dithered-object-entry").then(

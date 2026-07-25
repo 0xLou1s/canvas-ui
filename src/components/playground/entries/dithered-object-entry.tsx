@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 
-import { color, scrub, toggle } from "@/components/demos/control-schema";
+import { color, radio, scrub, toggle } from "@/components/demos/control-schema";
 import { DemoControls } from "@/components/demos/demo-controls";
 import {
   EntryPage,
@@ -21,6 +21,16 @@ const DEFAULT_HIGHLIGHT = "#066aff";
 
 const CONTROLS = {
   dither: toggle("Dither", true),
+  method: radio(
+    "Pattern",
+    "bayer",
+    [
+      { value: "bayer", label: "Bayer" },
+      { value: "halftone", label: "Halftone" },
+      { value: "floyd", label: "Floyd" },
+    ],
+    { when: (values) => values.dither === true },
+  ),
   grayscale: toggle("Grayscale", true),
   invert: toggle("Invert", false),
   autoRotate: toggle("Auto rotate", false),

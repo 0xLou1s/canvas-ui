@@ -10,19 +10,26 @@ import { DitheredObjectDemo } from "@/demos/dithered-object-demo";
 export const metadata: Metadata = {
   title: "Dithered Object",
   description:
-    "Renders any GLB/glTF model in a floating studio scene and dithers the render into a 1-bit Bayer pattern, with pixelation, grayscale, orbit controls, and a configurable environment. Built on three.js, works in any framework.",
+    "Renders any GLB/glTF model, SVG, or image in a floating studio scene and dithers the render into 1-bit Bayer, halftone, or Floyd–Steinberg patterns, with pixelation, grayscale, orbit controls, and a configurable environment. Built on three.js, works in any framework.",
   alternates: { canonical: "/docs/components/dithered-object" },
 };
 
 const DESCRIPTION =
-  "Point it at any GLB or glTF model and it floats in a lit studio, rendered through a classic Bayer dither. Built on three.js.";
+  "Point it at any GLB or glTF model, SVG, or image and it floats in a lit studio, rendered through a Bayer, halftone, or Floyd–Steinberg dither. Built on three.js.";
 
 const API_REFERENCE: ApiProp[] = [
   {
     name: "src",
     description:
-      "URL of the GLB/glTF model to display. Object URLs from a file input work too. Draco-compressed models are supported via a decoder fetched on demand.",
+      "URL of the asset to display: GLB/glTF, SVG, PNG, JPEG, WebP, or GIF. Object URLs from a file input work too. The format is sniffed from the bytes, not the extension. Draco-compressed models are supported via a decoder fetched on demand, and flat art is mounted as a card lit by the same studio.",
     type: "string",
+  },
+  {
+    name: "method",
+    description:
+      "Dither pattern: an ordered Bayer grid, clustered halftone dots, or Floyd–Steinberg error diffusion.",
+    type: '"bayer" | "halftone" | "floyd"',
+    defaultValue: '"bayer"',
   },
   {
     name: "gridSize",
@@ -57,7 +64,7 @@ const API_REFERENCE: ApiProp[] = [
   {
     name: "background",
     description:
-      "Background color behind the model. Leave empty for a transparent canvas.",
+      "Background color behind the object. Leave empty for a transparent canvas.",
     type: "string",
     defaultValue: '"" (transparent)',
   },
@@ -76,26 +83,26 @@ const API_REFERENCE: ApiProp[] = [
   {
     name: "roughness",
     description:
-      "Roughness override applied to every material (0 to 1). Negative keeps the model's own values.",
+      "Roughness override applied to every material (0 to 1). Negative keeps the asset's own values.",
     type: "number",
     defaultValue: "-1",
   },
   {
     name: "scale",
     description:
-      "Size of the longest side of the model in scene units. The camera sits about 4 units away.",
+      "Size of the longest side of the object in scene units. The camera sits about 4 units away.",
     type: "number",
     defaultValue: "3",
   },
   {
     name: "xOffset",
-    description: "Horizontal offset of the model in scene units.",
+    description: "Horizontal offset of the object in scene units.",
     type: "number",
     defaultValue: "0",
   },
   {
     name: "yOffset",
-    description: "Vertical offset of the model in scene units.",
+    description: "Vertical offset of the object in scene units.",
     type: "number",
     defaultValue: "0",
   },
@@ -131,7 +138,7 @@ const API_REFERENCE: ApiProp[] = [
   },
   {
     name: "autoRotate",
-    description: "Spin the camera around the model turntable-style.",
+    description: "Spin the camera around the object turntable-style.",
     type: "boolean",
     defaultValue: "false",
   },
@@ -149,7 +156,7 @@ const API_REFERENCE: ApiProp[] = [
   },
   {
     name: "cameraDistance",
-    description: "Camera distance from the center of the model.",
+    description: "Camera distance from the center of the object.",
     type: "number",
     defaultValue: "4.2",
   },
@@ -162,12 +169,12 @@ const API_REFERENCE: ApiProp[] = [
   },
   {
     name: "onLoad",
-    description: "Called after a model finishes loading.",
+    description: "Called after an asset finishes loading.",
     type: "() => void",
   },
   {
     name: "onError",
-    description: "Called when a model fails to load.",
+    description: "Called when an asset fails to load.",
     type: "(error: unknown) => void",
   },
   {
@@ -201,8 +208,9 @@ export default async function DitheredObjectPage() {
           <section className="mt-8" aria-label="Demo">
             <h2 className="text-lg font-semibold tracking-[-0.01em]">Demo</h2>
             <p className="mt-2 text-[13px] text-muted-foreground">
-              Drag to orbit the model, then open the controls to swap in your
-              own GLB/glTF file by URL or from disk.
+              Drag to orbit the object, switch the dither pattern, then open the
+              controls to swap in your own GLB/glTF model, SVG, or image by URL
+              or from disk.
             </p>
             <div className="mt-3">
               <DitheredObjectDemo />

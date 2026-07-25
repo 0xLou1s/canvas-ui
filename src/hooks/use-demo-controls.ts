@@ -3,7 +3,6 @@
 import {
   createParser,
   parseAsBoolean,
-  parseAsString,
   parseAsStringLiteral,
   useQueryStates,
   type SingleParserBuilder,
@@ -18,6 +17,20 @@ import type {
 } from "@/components/demos/control-schema";
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const TRANSIENT_URL = /^(?:blob|data):/i;
+
+function isTransient(value: ControlValue) {
+  return typeof value === "string" && TRANSIENT_URL.test(value);
+}
+
+const parseAsSharableString = createParser<string>({
+  parse(query) {
+    return TRANSIENT_URL.test(query) ? null : query;
+  },
+  serialize(value) {
+    return value;
+  },
+});
 
 const parseAsControlNumber = createParser<number>({
   parse(query) {
@@ -65,7 +78,7 @@ function parserFor(control: Control) {
         ? parseAsControlNumber.withDefault(control.defaultValue)
         : typeof control.defaultValue === "boolean"
           ? parseAsBoolean.withDefault(control.defaultValue)
-          : parseAsString.withDefault(control.defaultValue);
+          : parseAsSharableString.withDefault(control.defaultValue);
   }
 }
 
@@ -88,17 +101,36 @@ export function useDemoControls<S extends ControlSchema>(
 ): DemoControlsHandle<S> {
   const [parsers] = useState(() => buildParsers(schema));
   const [state, setState] = useQueryStates(parsers, { history: "replace" });
+  const [transient, setTransient] = useState<Record<string, ControlValue>>({});
 
-  const values = state as SchemaValues<S>;
+  const values = useMemo(
+    () =>
+      (Object.keys(transient).length
+        ? { ...state, ...transient }
+        : state) as SchemaValues<S>,
+    [state, transient],
+  );
 
   const setValue = useCallback(
     (key: string, value: ControlValue) => {
+      if (isTransient(value)) {
+        setTransient((prev) => ({ ...prev, [key]: value }));
+        void setState({ [key]: null });
+        return;
+      }
+      setTransient((prev) => {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
       void setState({ [key]: value });
     },
     [setState],
   );
 
   const reset = useCallback(() => {
+    setTransient({});
     void setState(null);
   }, [setState]);
 

@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import {
   color,
   custom,
+  radio,
   scrub,
   toggle,
 } from "@/components/demos/control-schema";
@@ -23,6 +24,16 @@ const DARK_BACKGROUND = "#0a0a0a";
 const CONTROLS = {
   src: custom(DEFAULT_MODEL),
   dither: toggle("Dither", true),
+  method: radio(
+    "Pattern",
+    "bayer",
+    [
+      { value: "bayer", label: "Bayer" },
+      { value: "halftone", label: "Halftone" },
+      { value: "floyd", label: "Floyd" },
+    ],
+    { when: (values) => values.dither === true },
+  ),
   grayscale: toggle("Grayscale", true),
   invert: toggle("Invert", false),
   autoRotate: toggle("Auto rotate", false),
@@ -142,8 +153,8 @@ export function DitheredObjectDemo() {
           <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
             <span className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-[12px] font-medium text-muted-foreground backdrop-blur-sm">
               {status === "loading"
-                ? "Loading model…"
-                : "Could not load that model. Check the URL or try another file."}
+                ? "Loading asset…"
+                : "Could not load that asset. Check the URL or try another file."}
             </span>
           </div>
         ) : null}
@@ -176,16 +187,16 @@ export function DitheredObjectDemo() {
                   if (e.key === "Enter") applyUrl();
                 }}
                 onBlur={applyUrl}
-                placeholder="Model URL (.glb / .gltf)"
-                aria-label="Model URL"
+                placeholder="Asset URL (.glb / .gltf / .svg / .png)"
+                aria-label="Asset URL"
                 spellCheck={false}
                 className="h-8 w-full min-w-0 rounded-lg bg-muted/60 px-3 text-[12.5px] font-medium text-foreground/90 outline-none transition-colors placeholder:text-muted-foreground hover:bg-muted/80 focus:bg-muted/80"
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                aria-label="Open a model file"
-                title="Open a model file"
+                aria-label="Open an asset file"
+                title="Open an asset file"
                 className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
               >
                 <FileUp aria-hidden className="size-3.5" />
@@ -193,7 +204,7 @@ export function DitheredObjectDemo() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                accept=".glb,.gltf,.svg,.png,.jpg,.jpeg,.webp,.gif,model/gltf-binary,model/gltf+json,image/svg+xml,image/png,image/jpeg,image/webp,image/gif"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];

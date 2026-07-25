@@ -62,7 +62,7 @@ export const COMPONENTS: ComponentEntry[] = [
     href: "/docs/components/dithered-object",
     name: "Dithered Object",
     description:
-      "Any GLB/glTF model floating in a studio scene, rendered through a 1-bit Bayer dither.",
+      "Any GLB/glTF model, SVG, or image floating in a studio scene, rendered through a 1-bit dither.",
     video: "/assets/videos/dithered-object.webm",
   },
   {

@@ -62,7 +62,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
   "dithered-object": {
     base: "DitheredObject",
     description:
-      "Renders any GLB or glTF model in a floating studio scene through a 1-bit Bayer dither. Built on three.js.",
+      "Renders any GLB/glTF model, SVG, or image in a floating studio scene through a 1-bit Bayer, halftone, or Floyd–Steinberg dither. Built on three.js.",
     dependencies: ["three"],
     devDependencies: ["@types/three"],
   },
@@ -296,7 +296,9 @@ export const REGISTRY_ITEMS = Object.keys(COMPONENTS).flatMap((component) =>
 );
 
 export function getRegistryItem(name: string): RegistryItem | null {
-  const match = /^([a-z-]+)-(react|solid|preact|vue|svelte|vanilla)$/.exec(name);
+  const match = /^([a-z-]+)-(react|solid|preact|vue|svelte|vanilla)$/.exec(
+    name,
+  );
   if (!match) return null;
   const [, component, id] = match;
   const def = COMPONENTS[component];

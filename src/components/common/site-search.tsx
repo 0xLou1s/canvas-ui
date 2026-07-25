@@ -102,7 +102,7 @@ const ENTRIES: SearchEntry[] = [
     href: "/docs/components/dithered-object",
     label: "Dithered Object",
     section: "Components",
-    hint: "3d model gltf glb bayer",
+    hint: "3d model gltf glb svg png bayer halftone floyd steinberg",
   },
   {
     href: "/docs/components/droplets",
