@@ -1,7 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, Link as LinkIcon, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import {
+  Check,
+  Link as LinkIcon,
+  RotateCcw,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { play } from "cuelume";
 import {
   createContext,
@@ -17,12 +23,15 @@ import {
 import { createPortal } from "react-dom";
 
 import type { ControlSchema } from "@/components/demos/control-schema";
+import { ColorRow } from "@/components/demos/color-picker";
 import {
   publishDemoSnippet,
   type DemoSnippet,
 } from "@/components/demos/snippet-store";
 import { Scrubber } from "@/components/docs/scrubber";
 import type { DemoControlsHandle } from "@/hooks/use-demo-controls";
+
+export { ColorRow };
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -485,56 +494,6 @@ export function RadioRow<V extends string>({
           {option.label}
         </button>
       ))}
-    </div>
-  );
-}
-
-export function ColorRow({
-  label,
-  value,
-  onValueChange,
-  displayValue,
-  onReset,
-}: {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  /** Text shown instead of the hex value, e.g. "Auto". */
-  displayValue?: string;
-  /** When set, shows a Reset link that reverts the row. */
-  onReset?: () => void;
-}) {
-  return (
-    <div className="flex h-8 w-full shrink-0 items-center justify-between rounded-lg bg-muted/60 px-3 transition-[background-color,opacity] hover:bg-muted/80">
-      <span className="text-[12.5px] font-medium text-foreground/90">
-        {label}
-      </span>
-      <span className="flex items-center gap-2">
-        {onReset && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="cursor-pointer text-[12.5px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Reset
-          </button>
-        )}
-        <span
-          className="text-[12.5px] font-medium text-muted-foreground"
-          style={{ fontVariantNumeric: "tabular-nums" }}
-        >
-          {displayValue ?? value}
-        </span>
-        <label className="relative size-4.5 cursor-pointer overflow-hidden rounded-full border border-border/70">
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
-            aria-label={`${label} color`}
-            className="absolute -inset-2 size-9 cursor-pointer border-0 p-0"
-          />
-        </label>
-      </span>
     </div>
   );
 }

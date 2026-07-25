@@ -88,6 +88,11 @@ export function LiquidDemo({ children }: { children: ReactNode }) {
                 label="Color"
                 value={color}
                 onValueChange={(next) => setValue("color", next)}
+                onReset={
+                  color !== CONTROLS.color.defaultValue
+                    ? () => setValue("color", CONTROLS.color.defaultValue)
+                    : undefined
+                }
               />
             </div>
           ),

@@ -217,6 +217,11 @@ export function ParticleObjectDemo() {
               label="Background"
               value={swatchBackground}
               onValueChange={(next) => setValue("background", next)}
+              onReset={
+                background !== null
+                  ? () => setValue("background", "")
+                  : undefined
+              }
             />
           ),
         }}
