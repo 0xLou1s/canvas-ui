@@ -266,8 +266,14 @@ export function HeroReel({
     let push = 0;
     let raf = 0;
     let last = performance.now();
+    let inView = true;
+    let running = false;
+
     const animate = () => {
-      raf = requestAnimationFrame(animate);
+      if (!inView || document.hidden) {
+        running = false;
+        return;
+      }
       const now = performance.now();
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
@@ -300,14 +306,50 @@ export function HeroReel({
         row.mesh.renderOrder = Math.round(row.alpha * 100);
       });
       renderer.render(scene, camera);
+      raf = requestAnimationFrame(animate);
     };
-    animate();
+
+    const start = () => {
+      if (running || !inView || document.hidden) return;
+      running = true;
+      last = performance.now();
+      raf = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const viewObserver = new IntersectionObserver((entries) => {
+      inView = entries[entries.length - 1]?.isIntersecting ?? true;
+      if (inView) {
+        start();
+      } else {
+        stop();
+      }
+    });
+    viewObserver.observe(holder);
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        start();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    start();
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.clearInterval(interval);
       themeObserver.disconnect();
       resizeObserver.disconnect();
+      viewObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("click", onClick);
       for (const row of rows) {
