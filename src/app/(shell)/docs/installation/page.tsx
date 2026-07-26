@@ -128,7 +128,7 @@ Beyond that, TypeScript is recommended, since every file ships as typed source. 
 
 ## Install with the CLI
 
-Every component has a registry entry per framework (react, vue, svelte, solid, vanilla):
+Every component has a registry entry per framework (react, solid, preact, vue, svelte, vanilla):
 
 \`\`\`sh
 npx shadcn@latest add @canvas-ui/liquid-react
