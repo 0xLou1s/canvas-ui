@@ -10,7 +10,7 @@ An open source library of creative, framework-agnostic components drawn on canva
 
 ## What makes it different
 
-Most of the library is built on the experimental [html-in-canvas](https://chromestatus.com/feature/5162535032373248) API, which lets WebGL effects read and redraw your live DOM. Text stays selectable, links stay clickable, and the whole page becomes a texture that fire, fluid, and glass can distort in real time.
+Most of the library is built on the experimental [HTML-in-canvas](https://chromestatus.com/feature/5172548013916160) API, which lets WebGL effects read and redraw your live DOM. Text stays selectable, links stay clickable, and the whole page becomes a texture that fire, fluid, and glass can distort in real time.
 
 Where html-in-canvas is not supported, components degrade gracefully to pure WebGL overlays, so every visitor gets a working page.
 
