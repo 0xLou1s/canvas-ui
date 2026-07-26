@@ -11,12 +11,12 @@ import { DemoImageSection } from "@/demos/demo-image-cycler";
 export const metadata: Metadata = {
   title: "Asciify",
   description:
-    "Wraps your content in a canvas using the html-in-canvas API and redraws the page as live ascii characters in a soft radius around the cursor. No dependencies, works in any framework.",
+    "Redraws visible content as ascii characters in a soft radius around the cursor, using HTML-in-Canvas where available and lightweight viewport snapshots in browsers such as Firefox. Works in any framework.",
   alternates: { canonical: "/docs/components/asciify" },
 };
 
 const DESCRIPTION =
-  "A soft lens follows your cursor, redrawing the page beneath it as live ascii characters. Move around, this page is the demo.";
+  "A soft lens follows your cursor, redrawing the page beneath it as ascii characters. Move around, this page is the demo.";
 
 const API_REFERENCE: ApiProp[] = [
   {

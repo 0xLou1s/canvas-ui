@@ -59,6 +59,7 @@ const CHARSETS: Record<AsciifyCharset, number[]> = {
 };
 
 const MAX_GLYPHS = 16;
+const FALLBACK_CAPTURE_DELAY = 500;
 
 const DEFAULTS: Required<AsciifyOptions> = {
   radius: 0.4,
@@ -100,6 +101,7 @@ precision highp float;
 in vec2 vUv;
 out vec4 outColor;
 uniform sampler2D uContent;
+uniform vec2 uContentOffset;
 uniform vec2 uResolution;
 uniform float uGlyphPx;
 uniform float uSpacing;
@@ -160,8 +162,13 @@ void main () {
     return;
   }
 
-  vec2 sampleUv = clamp(cellUv, vec2(0.001), vec2(uMaxX - 0.002, 0.999));
-  vec4 pixel = textureLod(uContent, vec2(sampleUv.x, 1.0 - sampleUv.y), uLod);
+  vec2 textureUv = vec2(cellUv.x, 1.0 - cellUv.y) + uContentOffset;
+  if (textureUv.x < 0.001 || textureUv.x > uMaxX - 0.002 ||
+      textureUv.y < 0.001 || textureUv.y > 0.999) {
+    outColor = vec4(0.0);
+    return;
+  }
+  vec4 pixel = textureLod(uContent, textureUv, uLod);
 
   float lum = dot(pixel.rgb, vec3(0.299, 0.587, 0.114));
   float amount = abs(lum - uBackingLum);
@@ -179,7 +186,7 @@ void main () {
     0.0, 1.0);
   vec3 col = mix(uBg, glyphColor, on);
   float alpha = pixel.a * mix(clamp(uBgOpacity, 0.0, 1.0), 1.0, on);
-  outColor = vec4(col, alpha);
+  outColor = vec4(col * alpha, alpha);
 }`;
 
 export function supportsHtmlInCanvas(): boolean {
@@ -193,9 +200,361 @@ export function supportsHtmlInCanvas(): boolean {
   );
 }
 
+interface FallbackRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+interface FallbackPaintState {
+  style: CSSStyleDeclaration;
+  visible: boolean;
+  opacity: number;
+  clip: FallbackRect;
+  childrenClip: FallbackRect;
+}
+
+function intersectFallbackRects(
+  first: FallbackRect,
+  second: FallbackRect,
+): FallbackRect {
+  return {
+    left: Math.max(first.left, second.left),
+    top: Math.max(first.top, second.top),
+    right: Math.min(first.right, second.right),
+    bottom: Math.min(first.bottom, second.bottom),
+  };
+}
+
+function paintFallbackSnapshot(content: HTMLElement, canvas: HTMLCanvasElement) {
+  const rootRect = content.getBoundingClientRect();
+  const width = Math.max(1, Math.round(rootRect.width));
+  const height = Math.max(1, Math.round(rootRect.height));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas is unavailable");
+  ctx.clearRect(0, 0, width, height);
+
+  const rootClip: FallbackRect = {
+    left: rootRect.left,
+    top: rootRect.top,
+    right: rootRect.right,
+    bottom: rootRect.bottom,
+  };
+  const states = new WeakMap<Element, FallbackPaintState>();
+
+  function resolveState(element: Element): FallbackPaintState {
+    const cached = states.get(element);
+    if (cached) return cached;
+
+    const parent = element.parentElement;
+    const parentState =
+      parent && content.contains(parent) ? resolveState(parent) : null;
+    const style = getComputedStyle(element);
+    const ownOpacity = Number.parseFloat(style.opacity);
+    const opacity =
+      (parentState?.opacity ?? 1) * (Number.isFinite(ownOpacity) ? ownOpacity : 1);
+    const visible =
+      (parentState?.visible ?? true) &&
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.visibility !== "collapse" &&
+      opacity > 0;
+    const clip = parentState?.childrenClip ?? rootClip;
+    const rect = element.getBoundingClientRect();
+    const childrenClip = { ...clip };
+    if (style.overflowX !== "visible") {
+      childrenClip.left = Math.max(childrenClip.left, rect.left);
+      childrenClip.right = Math.min(childrenClip.right, rect.right);
+    }
+    if (style.overflowY !== "visible") {
+      childrenClip.top = Math.max(childrenClip.top, rect.top);
+      childrenClip.bottom = Math.min(childrenClip.bottom, rect.bottom);
+    }
+
+    const state = { style, visible, opacity, clip, childrenClip };
+    states.set(element, state);
+    return state;
+  }
+
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_ELEMENT);
+  let current: Node | null = walker.currentNode;
+  while (current) {
+    const element = current as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    const state = resolveState(element);
+    const visibleRect = intersectFallbackRects(rect, state.clip);
+    if (
+      state.visible &&
+      visibleRect.right > visibleRect.left &&
+      visibleRect.bottom > visibleRect.top
+    ) {
+      const { style } = state;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(
+        state.clip.left - rootRect.left,
+        state.clip.top - rootRect.top,
+        state.clip.right - state.clip.left,
+        state.clip.bottom - state.clip.top,
+      );
+      ctx.clip();
+      ctx.globalAlpha = state.opacity;
+      const x = rect.left - rootRect.left;
+      const y = rect.top - rootRect.top;
+
+      if (style.backgroundColor !== "transparent") {
+        ctx.fillStyle = style.backgroundColor;
+        ctx.fillRect(x, y, rect.width, rect.height);
+      }
+
+      paintFallbackMedia(ctx, element, style, rect, rootRect);
+      paintFallbackText(ctx, element, style, rootRect);
+      paintFallbackBorders(ctx, style, rect, rootRect);
+      ctx.restore();
+    }
+    current = walker.nextNode();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function paintFallbackMedia(
+  ctx: CanvasRenderingContext2D,
+  element: HTMLElement,
+  style: CSSStyleDeclaration,
+  rect: DOMRect,
+  rootRect: DOMRect,
+) {
+  const drawable =
+    element instanceof HTMLImageElement
+      ? element.complete && element.naturalWidth > 0
+        ? element
+        : null
+      : element instanceof HTMLCanvasElement
+        ? element
+        : element instanceof HTMLVideoElement && element.readyState >= 2
+          ? element
+          : null;
+  if (!drawable) return;
+  if (!isFallbackMediaOriginClean(drawable)) return;
+
+  const sourceWidth =
+    drawable instanceof HTMLImageElement
+      ? drawable.naturalWidth
+      : drawable instanceof HTMLVideoElement
+        ? drawable.videoWidth
+        : drawable.width;
+  const sourceHeight =
+    drawable instanceof HTMLImageElement
+      ? drawable.naturalHeight
+      : drawable instanceof HTMLVideoElement
+        ? drawable.videoHeight
+        : drawable.height;
+  if (!(sourceWidth > 0 && sourceHeight > 0)) return;
+
+  let sourceX = 0;
+  let sourceY = 0;
+  let cropWidth = sourceWidth;
+  let cropHeight = sourceHeight;
+  let targetX = rect.left - rootRect.left;
+  let targetY = rect.top - rootRect.top;
+  let targetWidth = rect.width;
+  let targetHeight = rect.height;
+  const [positionX, positionY] = resolveObjectPosition(style.objectPosition);
+  if (style.objectFit === "cover") {
+    const scale = Math.max(rect.width / sourceWidth, rect.height / sourceHeight);
+    cropWidth = rect.width / scale;
+    cropHeight = rect.height / scale;
+    sourceX = (sourceWidth - cropWidth) * positionX;
+    sourceY = (sourceHeight - cropHeight) * positionY;
+  } else if (style.objectFit === "contain" || style.objectFit === "scale-down") {
+    const containScale = Math.min(
+      rect.width / sourceWidth,
+      rect.height / sourceHeight,
+      style.objectFit === "scale-down" ? 1 : Number.POSITIVE_INFINITY,
+    );
+    targetWidth = sourceWidth * containScale;
+    targetHeight = sourceHeight * containScale;
+    targetX += (rect.width - targetWidth) * positionX;
+    targetY += (rect.height - targetHeight) * positionY;
+  }
+
+  try {
+    ctx.drawImage(
+      drawable,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      targetX,
+      targetY,
+      targetWidth,
+      targetHeight,
+    );
+  } catch {}
+}
+
+function isFallbackMediaOriginClean(
+  drawable: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement,
+): boolean {
+  const probe = document.createElement("canvas");
+  probe.width = probe.height = 1;
+  const ctx = probe.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return false;
+  try {
+    ctx.drawImage(drawable, 0, 0, 1, 1);
+    ctx.getImageData(0, 0, 1, 1);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveObjectPosition(position: string): [number, number] {
+  const [x = "50%", y = "50%"] = position.split(/\s+/);
+  return [
+    resolvePositionValue(x, "left", "right"),
+    resolvePositionValue(y, "top", "bottom"),
+  ];
+}
+
+function resolvePositionValue(value: string, start: string, end: string): number {
+  if (value === start) return 0;
+  if (value === end) return 1;
+  if (value === "center") return 0.5;
+  if (value.endsWith("%")) {
+    return Math.min(1, Math.max(0, Number.parseFloat(value) / 100));
+  }
+  return 0.5;
+}
+
+function paintFallbackText(
+  ctx: CanvasRenderingContext2D,
+  element: HTMLElement,
+  style: CSSStyleDeclaration,
+  rootRect: DOMRect,
+) {
+  const textNodes = Array.from(element.childNodes).filter(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+  );
+  if (textNodes.length === 0) return;
+
+  ctx.fillStyle = style.color;
+  ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  ctx.textBaseline = "top";
+  const textAlign: CanvasTextAlign =
+    style.textAlign === "center" ||
+    style.textAlign === "right" ||
+    style.textAlign === "start" ||
+    style.textAlign === "end"
+      ? style.textAlign
+      : "left";
+  const direction: CanvasDirection = style.direction === "rtl" ? "rtl" : "ltr";
+  ctx.textAlign = textAlign;
+  ctx.direction = direction;
+
+  for (const node of textNodes) {
+    let text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    if (!text) continue;
+    if (style.textTransform === "uppercase") text = text.toUpperCase();
+    if (style.textTransform === "lowercase") text = text.toLowerCase();
+
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rects = Array.from(range.getClientRects()).filter(
+      (rect) =>
+        rect.right > rootRect.left &&
+        rect.left < rootRect.right &&
+        rect.bottom > rootRect.top &&
+        rect.top < rootRect.bottom,
+    );
+    if (rects.length === 0) continue;
+
+    const totalWidth = rects.reduce((sum, rect) => sum + rect.width, 0);
+    let offset = 0;
+    for (let index = 0; index < rects.length; index++) {
+      const rect = rects[index];
+      const remaining = text.length - offset;
+      if (remaining <= 0) break;
+      const count =
+        index === rects.length - 1
+          ? remaining
+          : Math.min(
+              remaining,
+              Math.max(1, Math.round((text.length * rect.width) / totalWidth)),
+            );
+      const line = text.slice(offset, offset + count).trim();
+      offset += count;
+      if (!line) continue;
+      const anchor =
+        textAlign === "center"
+          ? 0.5
+          : textAlign === "right" ||
+              (textAlign === "end" && direction === "ltr") ||
+              (textAlign === "start" && direction === "rtl")
+            ? 1
+            : 0;
+      const x = rect.left - rootRect.left + rect.width * anchor;
+      ctx.fillText(
+        line,
+        x,
+        rect.top - rootRect.top,
+        Math.max(rect.width, 1),
+      );
+    }
+  }
+}
+
+function paintFallbackBorders(
+  ctx: CanvasRenderingContext2D,
+  style: CSSStyleDeclaration,
+  rect: DOMRect,
+  rootRect: DOMRect,
+) {
+  const x = rect.left - rootRect.left;
+  const y = rect.top - rootRect.top;
+  const top = Number.parseFloat(style.borderTopWidth);
+  const right = Number.parseFloat(style.borderRightWidth);
+  const bottom = Number.parseFloat(style.borderBottomWidth);
+  const left = Number.parseFloat(style.borderLeftWidth);
+  if (top > 0) {
+    ctx.fillStyle = style.borderTopColor;
+    ctx.fillRect(x, y, rect.width, top);
+  }
+  if (right > 0) {
+    ctx.fillStyle = style.borderRightColor;
+    ctx.fillRect(x + rect.width - right, y, right, rect.height);
+  }
+  if (bottom > 0) {
+    ctx.fillStyle = style.borderBottomColor;
+    ctx.fillRect(x, y + rect.height - bottom, rect.width, bottom);
+  }
+  if (left > 0) {
+    ctx.fillStyle = style.borderLeftColor;
+    ctx.fillRect(x, y, left, rect.height);
+  }
+}
+
 export function createAsciify(
   elements: AsciifyElements,
   options: AsciifyOptions = {},
+): AsciifyInstance | null {
+  try {
+    return initializeAsciify(elements, options);
+  } catch (error) {
+    console.error("Asciify initialization failed:", error);
+    return null;
+  }
+}
+
+function initializeAsciify(
+  elements: AsciifyElements,
+  options: AsciifyOptions,
 ): AsciifyInstance | null {
   const config = { ...DEFAULTS, ...options };
   const { source, content, output } = elements;
@@ -205,7 +564,7 @@ export function createAsciify(
     depth: false,
     stencil: false,
     antialias: false,
-    premultipliedAlpha: false,
+    premultipliedAlpha: true,
   });
   if (!gl || gl.isContextLost()) return null;
 
@@ -217,8 +576,16 @@ export function createAsciify(
     typeof paintable.requestPaint === "function",
   );
 
+  let destroyed = false;
   let contentDirty = false;
   let wake = () => {};
+  let fallbackSource: HTMLCanvasElement | null = null;
+  let fallbackCaptureTimer = 0;
+  let fallbackScrollCaptureTimer = 0;
+  let capturedScrollLeft = 0;
+  let capturedScrollTop = 0;
+  let fallbackErrorLogged = false;
+  let textureUploadErrorLogged = false;
 
   if (htmlInCanvas) {
     paintable.onpaint = () => {
@@ -231,12 +598,45 @@ export function createAsciify(
     };
   }
 
+  function queueFallbackCapture(immediate = false) {
+    if (htmlInCanvas || destroyed) return;
+    window.clearTimeout(fallbackCaptureTimer);
+    fallbackCaptureTimer = window.setTimeout(
+      captureFallback,
+      immediate ? 0 : FALLBACK_CAPTURE_DELAY,
+    );
+  }
+
+  function captureFallback() {
+    window.clearTimeout(fallbackCaptureTimer);
+    window.clearTimeout(fallbackScrollCaptureTimer);
+    fallbackCaptureTimer = 0;
+    fallbackScrollCaptureTimer = 0;
+    try {
+      paintFallbackSnapshot(content, source);
+      if (destroyed) return;
+      fallbackSource = source;
+      capturedScrollLeft = content.scrollLeft;
+      capturedScrollTop = content.scrollTop;
+      contentDirty = true;
+      fallbackErrorLogged = false;
+      wake();
+    } catch (error) {
+      if (!destroyed && !fallbackErrorLogged) {
+        fallbackErrorLogged = true;
+        console.warn("Asciify could not capture its HTML fallback:", error);
+      }
+    }
+  }
+
   function compile(type: number, text: string): WebGLShader {
     const shader = gl!.createShader(type)!;
     gl!.shaderSource(shader, text);
     gl!.compileShader(shader);
     if (!gl!.getShaderParameter(shader, gl!.COMPILE_STATUS)) {
-      console.error("Asciify shader error:", gl!.getShaderInfoLog(shader));
+      const message = gl!.getShaderInfoLog(shader) || "Unknown shader error";
+      gl!.deleteShader(shader);
+      throw new Error(message);
     }
     return shader;
   }
@@ -247,6 +647,13 @@ export function createAsciify(
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const message = gl.getProgramInfoLog(program) || "Unknown program link error";
+    gl.deleteProgram(program);
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+    throw new Error(message);
+  }
 
   const uniforms: Record<string, WebGLUniformLocation> = {};
   const uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
@@ -289,13 +696,15 @@ export function createAsciify(
 
   let contentMaxX = 1;
 
-  function syncCanvasSize() {
+  function syncCanvasSize(): boolean {
+    let changed = false;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(1, Math.round(output.clientWidth * dpr));
     const height = Math.max(1, Math.round(output.clientHeight * dpr));
     if (output.width !== width || output.height !== height) {
       output.width = width;
       output.height = height;
+      changed = true;
     }
     contentMaxX = Math.min(
       1,
@@ -307,9 +716,11 @@ export function createAsciify(
       if (source.width !== cssWidth || source.height !== cssHeight) {
         source.width = cssWidth;
         source.height = cssHeight;
+        changed = true;
       }
       paintable.requestPaint!();
     }
+    return changed;
   }
 
   syncCanvasSize();
@@ -360,18 +771,27 @@ export function createAsciify(
   }
 
   function uploadContent() {
-    if (!htmlInCanvas || !contentDirty) return;
+    const bitmap = htmlInCanvas ? source : fallbackSource;
+    if (!bitmap || !contentDirty) return;
     contentDirty = false;
-    gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
-    gl!.texImage2D(
-      gl!.TEXTURE_2D,
-      0,
-      gl!.RGBA,
-      gl!.RGBA,
-      gl!.UNSIGNED_BYTE,
-      source,
-    );
-    gl!.generateMipmap(gl!.TEXTURE_2D);
+    try {
+      gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
+      gl!.texImage2D(
+        gl!.TEXTURE_2D,
+        0,
+        gl!.RGBA,
+        gl!.RGBA,
+        gl!.UNSIGNED_BYTE,
+        bitmap,
+      );
+      gl!.generateMipmap(gl!.TEXTURE_2D);
+      textureUploadErrorLogged = false;
+    } catch (error) {
+      if (!textureUploadErrorLogged) {
+        textureUploadErrorLogged = true;
+        console.warn("Asciify could not upload its content texture:", error);
+      }
+    }
   }
 
   function render() {
@@ -380,6 +800,17 @@ export function createAsciify(
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
     gl!.uniform1i(uniforms.uContent, 0);
+    gl!.uniform2f(
+      uniforms.uContentOffset,
+      htmlInCanvas
+        ? 0
+        : (content.scrollLeft - capturedScrollLeft) /
+            Math.max(content.clientWidth, 1),
+      htmlInCanvas
+        ? 0
+        : (content.scrollTop - capturedScrollTop) /
+            Math.max(content.clientHeight, 1),
+    );
     gl!.uniform2f(uniforms.uResolution, output.width, output.height);
     const dpr = output.width / Math.max(output.clientWidth, 1);
     const glyphCss = Math.max(config.scale, 0.5);
@@ -414,7 +845,6 @@ export function createAsciify(
 
   let raf = 0;
   let lastTime = performance.now();
-  let destroyed = false;
   let running = false;
   let visible = true;
 
@@ -460,6 +890,7 @@ export function createAsciify(
   }
 
   wake = start;
+  queueFallbackCapture(true);
   start();
 
   function onMotionChange() {
@@ -475,6 +906,7 @@ export function createAsciify(
     window.clearTimeout(themeTimer);
     themeTimer = window.setTimeout(() => {
       syncBacking();
+      queueFallbackCapture();
       start();
     }, 300);
   }
@@ -488,7 +920,7 @@ export function createAsciify(
   schemeQuery.addEventListener("change", onThemeShift);
 
   const observer = new ResizeObserver(() => {
-    syncCanvasSize();
+    if (syncCanvasSize()) queueFallbackCapture();
     start();
   });
   observer.observe(output);
@@ -502,16 +934,58 @@ export function createAsciify(
 
   const listenTarget = output.parentElement ?? output;
 
+  const contentObserver = htmlInCanvas
+    ? null
+    : new MutationObserver(() => queueFallbackCapture());
+  contentObserver?.observe(content, {
+    attributes: true,
+    attributeFilter: ["class", "hidden", "src", "srcset", "style"],
+    characterData: true,
+    childList: true,
+    subtree: true,
+  });
+
+  function onContentScroll() {
+    if (htmlInCanvas || destroyed) return;
+    window.clearTimeout(fallbackScrollCaptureTimer);
+    fallbackScrollCaptureTimer = window.setTimeout(
+      captureFallback,
+      FALLBACK_CAPTURE_DELAY,
+    );
+    start();
+  }
+  function onFallbackVisualChange() {
+    queueFallbackCapture();
+  }
+  if (!htmlInCanvas) {
+    content.addEventListener("scroll", onContentScroll, {
+      capture: true,
+      passive: true,
+    });
+    content.addEventListener("load", onFallbackVisualChange, true);
+    content.addEventListener("loadeddata", onFallbackVisualChange, true);
+    content.addEventListener("focusin", onFallbackVisualChange, true);
+    content.addEventListener("focusout", onFallbackVisualChange, true);
+    content.addEventListener("input", onFallbackVisualChange, true);
+    content.addEventListener("change", onFallbackVisualChange, true);
+    content.addEventListener("transitionend", onFallbackVisualChange, true);
+    content.addEventListener("transitioncancel", onFallbackVisualChange, true);
+    content.addEventListener("animationend", onFallbackVisualChange, true);
+    document.fonts?.addEventListener("loadingdone", onFallbackVisualChange);
+  }
+
   function onPointerMove(event: PointerEvent) {
     const rect = output.getBoundingClientRect();
     pointer.tx = (event.clientX - rect.left) / Math.max(rect.width, 1);
     pointer.ty = 1 - (event.clientY - rect.top) / Math.max(rect.height, 1);
     pointer.target = 1;
+    queueFallbackCapture();
     start();
   }
 
   function onPointerLeave() {
     pointer.target = 0;
+    queueFallbackCapture();
     start();
   }
 
@@ -527,19 +1001,38 @@ export function createAsciify(
     resize() {
       syncCanvasSize();
       syncBacking();
+      queueFallbackCapture();
       start();
     },
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);
       window.clearTimeout(themeTimer);
+      window.clearTimeout(fallbackCaptureTimer);
+      window.clearTimeout(fallbackScrollCaptureTimer);
       observer.disconnect();
       intersection.disconnect();
       themeObserver.disconnect();
+      contentObserver?.disconnect();
       schemeQuery.removeEventListener("change", onThemeShift);
       motionQuery.removeEventListener("change", onMotionChange);
       listenTarget.removeEventListener("pointermove", onPointerMove);
       listenTarget.removeEventListener("pointerleave", onPointerLeave);
+      content.removeEventListener("scroll", onContentScroll, true);
+      content.removeEventListener("load", onFallbackVisualChange, true);
+      content.removeEventListener("loadeddata", onFallbackVisualChange, true);
+      content.removeEventListener("focusin", onFallbackVisualChange, true);
+      content.removeEventListener("focusout", onFallbackVisualChange, true);
+      content.removeEventListener("input", onFallbackVisualChange, true);
+      content.removeEventListener("change", onFallbackVisualChange, true);
+      content.removeEventListener("transitionend", onFallbackVisualChange, true);
+      content.removeEventListener(
+        "transitioncancel",
+        onFallbackVisualChange,
+        true,
+      );
+      content.removeEventListener("animationend", onFallbackVisualChange, true);
+      document.fonts?.removeEventListener("loadingdone", onFallbackVisualChange);
       gl!.deleteTexture(contentTexture);
       gl!.deleteProgram(program);
       gl!.deleteShader(vertexShader);

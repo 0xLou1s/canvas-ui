@@ -17,7 +17,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
   asciify: {
     base: "Asciify",
     description:
-      "Redraws your page as live ascii characters in a soft radius around the cursor, with real glyph, shade block, and binary ramps. The HTML stays interactive. No dependencies.",
+      "Redraws your page as live ascii characters in a soft radius around the cursor, with real glyph, shade block, and binary ramps. The HTML stays interactive in Chromium and Firefox.",
   },
   bend: {
     base: "Bend",
