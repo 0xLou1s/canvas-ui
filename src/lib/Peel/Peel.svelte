@@ -35,14 +35,25 @@
   onMount(() => {
     native = supportsHtmlInCanvas();
     let disposed = false;
-    tick().then(() => {
+    (async () => {
+      await tick();
       if (disposed) return;
+      if (!sourceEl || !contentEl || !outputEl) return;
       instance = createPeel(
         { source: sourceEl, content: contentEl, output: outputEl, under: underEl },
         options,
       );
-      if (native && !instance) native = false;
-    });
+      if (native && !instance) {
+        native = false;
+        await tick();
+        if (disposed) return;
+        if (!sourceEl || !contentEl || !outputEl) return;
+        instance = createPeel(
+          { source: sourceEl, content: contentEl, output: outputEl, under: underEl },
+          options,
+        );
+      }
+    })();
     return () => {
       disposed = true;
       instance?.destroy();

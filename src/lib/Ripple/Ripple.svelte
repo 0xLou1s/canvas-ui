@@ -33,14 +33,25 @@
   onMount(() => {
     native = supportsHtmlInCanvas();
     let disposed = false;
-    tick().then(() => {
+    (async () => {
+      await tick();
       if (disposed) return;
+      if (!sourceEl || !contentEl || !outputEl) return;
       instance = createRipple(
         { source: sourceEl, content: contentEl, output: outputEl },
         options,
       );
-      if (native && !instance) native = false;
-    });
+      if (native && !instance) {
+        native = false;
+        await tick();
+        if (disposed) return;
+        if (!sourceEl || !contentEl || !outputEl) return;
+        instance = createRipple(
+          { source: sourceEl, content: contentEl, output: outputEl },
+          options,
+        );
+      }
+    })();
     return () => {
       disposed = true;
       instance?.destroy();

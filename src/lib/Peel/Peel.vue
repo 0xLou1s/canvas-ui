@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import {
   createPeel,
@@ -17,28 +17,43 @@ const underEl = ref<HTMLDivElement | null>(null);
 const native = ref(false);
 
 let instance: PeelInstance | null = null;
-let raf = 0;
+let disposed = false;
 
-onMounted(() => {
+onMounted(async () => {
   native.value = supportsHtmlInCanvas();
-  raf = requestAnimationFrame(() => {
-    if (sourceEl.value && contentEl.value && outputEl.value) {
-      instance = createPeel(
-        {
-          source: sourceEl.value,
-          content: contentEl.value,
-          output: outputEl.value,
-          under: underEl.value ?? undefined,
-        },
-        props,
-      );
-      if (native.value && !instance) native.value = false;
+  await nextTick();
+  if (disposed) return;
+  if (sourceEl.value && contentEl.value && outputEl.value) {
+    instance = createPeel(
+      {
+        source: sourceEl.value,
+        content: contentEl.value,
+        output: outputEl.value,
+        under: underEl.value ?? undefined,
+      },
+      props,
+    );
+    if (native.value && !instance) {
+      native.value = false;
+      await nextTick();
+      if (disposed) return;
+      if (sourceEl.value && contentEl.value && outputEl.value) {
+        instance = createPeel(
+          {
+            source: sourceEl.value,
+            content: contentEl.value,
+            output: outputEl.value,
+            under: underEl.value ?? undefined,
+          },
+          props,
+        );
+      }
     }
-  });
+  }
 });
 
 onBeforeUnmount(() => {
-  cancelAnimationFrame(raf);
+  disposed = true;
   instance?.destroy();
   instance = null;
 });
