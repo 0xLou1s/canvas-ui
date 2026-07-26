@@ -1096,20 +1096,12 @@ export function createGlassObject(
   loadAsset();
 
   let inView = true;
-  const viewObserver =
-    typeof IntersectionObserver !== "undefined"
-      ? new IntersectionObserver((entries) => {
-          inView = entries[entries.length - 1]?.isIntersecting ?? true;
-        })
-      : null;
-  viewObserver?.observe(canvas);
+  let loopRunning = false;
 
-  let lastTime = 0;
-  let elapsed = Math.random() * 100;
-
-  renderer.setAnimationLoop((time: number) => {
+  function tick(time: number) {
     if (!inView) {
       lastTime = 0;
+      stopLoop();
       return;
     }
     const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
@@ -1135,10 +1127,53 @@ export function createGlassObject(
     }
 
     renderer.render(scene, camera);
-  });
+  }
+
+  function startLoop() {
+    if (loopRunning || !inView || disposed) return;
+    loopRunning = true;
+    renderer.setAnimationLoop(tick);
+  }
+
+  function stopLoop() {
+    if (!loopRunning) return;
+    loopRunning = false;
+    renderer.setAnimationLoop(null);
+  }
+
+  const viewObserver =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver((entries) => {
+          inView = entries[entries.length - 1]?.isIntersecting ?? true;
+          if (inView) {
+            startLoop();
+          } else {
+            stopLoop();
+          }
+        })
+      : null;
+  viewObserver?.observe(canvas);
+
+  let lastTime = 0;
+  let elapsed = Math.random() * 100;
+
+  startLoop();
 
   return {
     setOptions(next: GlassObjectOptions) {
+      let changed = false;
+      for (const [key, value] of Object.entries(next)) {
+        if (typeof value === "function") continue;
+        if (config[key as keyof GlassObjectOptions] !== value) {
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) {
+        Object.assign(config, next);
+        return;
+      }
+
       const previousHighlight = config.highlight;
       const previousDistance = config.cameraDistance;
       Object.assign(config, next);
@@ -1148,12 +1183,13 @@ export function createGlassObject(
       }
       applyOptions();
       loadAsset();
+      startLoop();
     },
     resize,
     destroy() {
       disposed = true;
       loadToken += 1;
-      renderer.setAnimationLoop(null);
+      stopLoop();
       observer.disconnect();
       viewObserver?.disconnect();
       motionQuery.removeEventListener("change", onMotionChange);

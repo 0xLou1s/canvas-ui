@@ -933,20 +933,12 @@ export function createParticleObject(
   }
 
   let inView = true;
-  const viewObserver =
-    typeof IntersectionObserver !== "undefined"
-      ? new IntersectionObserver((entries) => {
-          inView = entries[entries.length - 1]?.isIntersecting ?? true;
-        })
-      : null;
-  viewObserver?.observe(canvas);
+  let loopRunning = false;
 
-  let lastTime = 0;
-  let elapsed = Math.random() * 100;
-
-  renderer.setAnimationLoop((time: number) => {
+  function tick(time: number) {
     if (!inView) {
       lastTime = 0;
+      stopLoop();
       return;
     }
     const delta = lastTime ? Math.min((time - lastTime) / 1000, 1 / 30) : 0;
@@ -972,10 +964,53 @@ export function createParticleObject(
 
     if (delta > 0) simulate(delta);
     renderer.render(scene, camera);
-  });
+  }
+
+  function startLoop() {
+    if (loopRunning || !inView || disposed) return;
+    loopRunning = true;
+    renderer.setAnimationLoop(tick);
+  }
+
+  function stopLoop() {
+    if (!loopRunning) return;
+    loopRunning = false;
+    renderer.setAnimationLoop(null);
+  }
+
+  const viewObserver =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver((entries) => {
+          inView = entries[entries.length - 1]?.isIntersecting ?? true;
+          if (inView) {
+            startLoop();
+          } else {
+            stopLoop();
+          }
+        })
+      : null;
+  viewObserver?.observe(canvas);
+
+  let lastTime = 0;
+  let elapsed = Math.random() * 100;
+
+  startLoop();
 
   return {
     setOptions(next: ParticleObjectOptions) {
+      let changed = false;
+      for (const [key, value] of Object.entries(next)) {
+        if (typeof value === "function") continue;
+        if (config[key as keyof ParticleObjectOptions] !== value) {
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) {
+        Object.assign(config, next);
+        return;
+      }
+
       const previousDistance = config.cameraDistance;
       const previousCount = config.count;
       Object.assign(config, next);
@@ -985,12 +1020,13 @@ export function createParticleObject(
       applyOptions();
       if (config.count !== previousCount) buildCloud();
       loadAsset();
+      startLoop();
     },
     resize,
     destroy() {
       disposed = true;
       loadToken += 1;
-      renderer.setAnimationLoop(null);
+      stopLoop();
       observer.disconnect();
       viewObserver?.disconnect();
       motionQuery.removeEventListener("change", onMotionChange);
