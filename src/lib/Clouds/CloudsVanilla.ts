@@ -480,9 +480,9 @@ export function createClouds(
     if (htmlInCanvas) {
       const cssWidth = Math.max(1, Math.round(source.clientWidth));
       const cssHeight = Math.max(1, Math.round(source.clientHeight));
-      if (source.width !== cssWidth || source.height !== cssHeight) {
-        source.width = cssWidth;
-        source.height = cssHeight;
+      if (source.width !== cssWidth * dpr || source.height !== cssHeight * dpr) {
+        source.width = cssWidth * dpr;
+        source.height = cssHeight * dpr;
       }
       paintable.requestPaint!();
     }

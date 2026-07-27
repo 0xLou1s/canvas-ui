@@ -493,9 +493,9 @@ export function createGrid(
     if (htmlInCanvas) {
       const cssWidth = Math.max(1, Math.round(source.clientWidth));
       const cssHeight = Math.max(1, Math.round(source.clientHeight));
-      if (source.width !== cssWidth || source.height !== cssHeight) {
-        source.width = cssWidth;
-        source.height = cssHeight;
+      if (source.width !== cssWidth * scale || source.height !== cssHeight * scale) {
+        source.width = cssWidth * scale;
+        source.height = cssHeight * scale;
       }
       paintable.requestPaint!();
     }
