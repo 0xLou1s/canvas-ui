@@ -916,6 +916,12 @@ export function createBend(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof BendOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       syncScroll();
       start();

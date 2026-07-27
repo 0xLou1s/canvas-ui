@@ -675,6 +675,12 @@ export function createShatter(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof ShatterOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

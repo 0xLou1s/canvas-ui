@@ -732,6 +732,12 @@ export function createMagnify(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof MagnifyOptions] !== value,
+        )
+      )
+        return;
       const previousZoom = config.zoom;
       Object.assign(config, next);
       if (!config.scrollZoom || config.zoom !== previousZoom) {

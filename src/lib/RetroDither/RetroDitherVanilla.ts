@@ -437,6 +437,12 @@ export function createRetroDither(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof RetroDitherOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

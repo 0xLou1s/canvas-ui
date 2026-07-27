@@ -705,6 +705,12 @@ export function createDroplets(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof DropletsOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

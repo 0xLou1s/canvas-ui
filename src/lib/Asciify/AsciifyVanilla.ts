@@ -994,6 +994,12 @@ function initializeAsciify(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof AsciifyOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       syncBacking();
       start();
