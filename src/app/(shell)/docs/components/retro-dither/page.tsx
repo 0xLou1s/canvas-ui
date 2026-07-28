@@ -101,6 +101,25 @@ const API_REFERENCE: ApiProp[] = [
     defaultValue: "0",
   },
   {
+    name: "pattern",
+    description: "Dither pattern used for intermediate levels.",
+    type: '"bayer" | "halftone" | "hatch" | "dash"',
+    defaultValue: '"bayer"',
+  },
+  {
+    name: "trail",
+    description:
+      "Phosphor burn-in: the lens leaves a fading ghost along the cursor path (0 to 1).",
+    type: "number",
+    defaultValue: "0.4",
+  },
+  {
+    name: "degauss",
+    description: "Strength of the degauss ripple triggered on click (0 to 1).",
+    type: "number",
+    defaultValue: "0.8",
+  },
+  {
     name: "followSpeed",
     description: "How quickly the lens follows the cursor. Higher is snappier.",
     type: "number",

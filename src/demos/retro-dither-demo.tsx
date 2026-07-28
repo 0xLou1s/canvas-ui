@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 
-import { color, scrub } from "@/components/demos/control-schema";
+import { color, radio, scrub } from "@/components/demos/control-schema";
 import {
   DemoControls,
   useDemoScrollbarGutter,
@@ -22,6 +22,14 @@ const CONTROLS = {
   baseStrength: scrub("Base strength", 0, { min: 0, max: 1, step: 0.05 }),
   invert: scrub("Invert", 0, { min: 0, max: 1, step: 0.05 }),
   scanlines: scrub("Scanlines", 0, { min: 0, max: 1, step: 0.05 }),
+  pattern: radio("Pattern", "bayer", [
+    { value: "bayer", label: "Bayer" },
+    { value: "halftone", label: "Halftone" },
+    { value: "hatch", label: "Hatch" },
+    { value: "dash", label: "Dash" },
+  ]),
+  trail: scrub("Trail", 0.4, { min: 0, max: 1, step: 0.05 }),
+  degauss: scrub("Degauss", 0.8, { min: 0, max: 1, step: 0.05 }),
   followSpeed: scrub("Follow speed", 3, {
     min: 1,
     max: 20,
