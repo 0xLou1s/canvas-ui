@@ -111,6 +111,18 @@ const API_REFERENCE: ApiProp[] = [
     type: "number",
     defaultValue: "3",
   },
+  {
+    name: "glow",
+    description: "Soft phosphor glow around the text dots (0 to 1).",
+    type: "number",
+    defaultValue: "0.75",
+  },
+  {
+    name: "aberration",
+    description: "Soft chromatic aberration toward the lens edge (0 to 1).",
+    type: "number",
+    defaultValue: "0.75",
+  },
 ];
 
 export default async function AsciifyPage() {

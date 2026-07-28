@@ -29,6 +29,10 @@ export interface AsciifyOptions {
   baseStrength?: number;
   /** How quickly the lens follows the cursor. Higher is snappier. */
   followSpeed?: number;
+  /** Soft phosphor glow around the text dots (0 to 1). */
+  glow?: number;
+  /** Soft chromatic aberration toward the lens edge (0 to 1). */
+  aberration?: number;
 }
 
 export interface AsciifyElements {
@@ -76,6 +80,8 @@ const DEFAULTS: Required<AsciifyOptions> = {
   strength: 1,
   baseStrength: 0,
   followSpeed: 3,
+  glow: 0.75,
+  aberration: 0.75,
 };
 
 type PaintableCanvas = HTMLCanvasElement & {
@@ -121,6 +127,11 @@ uniform float uInvert;
 uniform float uStrength;
 uniform float uBase;
 uniform float uMaxX;
+uniform sampler2D uTextMask;
+uniform float uDotPx;
+uniform float uDotLod;
+uniform float uGlowAmt;
+uniform float uAberration;
 
 #define S(a, b, t) smoothstep(a, b, t)
 
@@ -132,6 +143,13 @@ float glyphBit (int index, ivec2 p) {
 
 float hash21 (vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+vec4 sampleFringe (vec2 uv, float lod, vec2 off) {
+  vec4 c = textureLod(uContent, uv, lod);
+  c.r = textureLod(uContent, uv + off, lod).r;
+  c.b = textureLod(uContent, uv - off, lod).b;
+  return c;
 }
 
 void main () {
@@ -168,7 +186,48 @@ void main () {
     outColor = vec4(0.0);
     return;
   }
-  vec4 pixel = textureLod(uContent, textureUv, uLod);
+
+  vec2 lensDir = (cellUv - uPointer) * vec2(aspect, 1.0);
+  float fringeAmp = max(uActive, S(0.0, 0.25, uBase));
+  vec2 fringe = normalize(lensDir + 1e-5)
+    * clamp(uAberration, 0.0, 1.0) * 0.005
+    * S(uRadius * 0.15, uRadius, dist) * fringeAmp;
+  fringe = vec2(fringe.x / aspect, -fringe.y);
+
+  float textness = texture(uTextMask, vec2(cellUv.x, 1.0 - cellUv.y)).r;
+
+  if (textness > 0.4) {
+    vec2 dotIdx = floor(frag / uDotPx);
+    vec2 dotUv = (dotIdx + 0.5) * uDotPx / uResolution;
+    vec2 flippedUv = clamp(
+      vec2(dotUv.x, 1.0 - dotUv.y) + uContentOffset,
+      vec2(0.001), vec2(uMaxX - 0.002, 0.999));
+    vec4 ink = sampleFringe(flippedUv, uDotLod, fringe);
+    float inkLum = dot(ink.rgb, vec3(0.299, 0.587, 0.114));
+    float density = abs(inkLum - uBackingLum);
+    density = clamp((density - 0.5) * uContrast + 0.5 + uBrightness, 0.0, 1.0);
+    density = mix(density, 1.0 - density, clamp(uInvert, 0.0, 1.0));
+    float d = length(frag - (dotIdx + 0.5) * uDotPx) / (uDotPx * 0.5);
+    float reach = sqrt(density);
+    float on = (1.0 - S(reach - 0.3, reach + 0.2, d)) * step(0.03, density);
+    vec3 inkColor = clamp(
+      uBg + (ink.rgb - uBg) / max(abs(inkLum - uBackingLum), 0.2),
+      0.0, 1.0);
+    vec4 soft = sampleFringe(flippedUv, uDotLod + 2.5, fringe);
+    float softLum = dot(soft.rgb, vec3(0.299, 0.587, 0.114));
+    float halo = clamp(abs(softLum - uBackingLum) * 2.2, 0.0, 1.0)
+      * clamp(uGlowAmt, 0.0, 1.0) * 0.55;
+    vec3 haloColor = clamp(
+      uBg + (soft.rgb - uBg) / max(abs(softLum - uBackingLum), 0.2),
+      0.0, 1.0);
+    vec3 col = mix(haloColor, inkColor, on);
+    float alpha = ink.a
+      * max(mix(clamp(uBgOpacity, 0.0, 1.0), 1.0, on), halo * (1.0 - on));
+    outColor = vec4(col * alpha, alpha);
+    return;
+  }
+
+  vec4 pixel = sampleFringe(textureUv, uLod, fringe);
 
   float lum = dot(pixel.rgb, vec3(0.299, 0.587, 0.114));
   float amount = abs(lum - uBackingLum);
@@ -227,7 +286,10 @@ function intersectFallbackRects(
   };
 }
 
-function paintFallbackSnapshot(content: HTMLElement, canvas: HTMLCanvasElement) {
+function paintFallbackSnapshot(
+  content: HTMLElement,
+  canvas: HTMLCanvasElement,
+) {
   const rootRect = content.getBoundingClientRect();
   const width = Math.max(1, Math.round(rootRect.width));
   const height = Math.max(1, Math.round(rootRect.height));
@@ -258,7 +320,8 @@ function paintFallbackSnapshot(content: HTMLElement, canvas: HTMLCanvasElement) 
     const style = getComputedStyle(element);
     const ownOpacity = Number.parseFloat(style.opacity);
     const opacity =
-      (parentState?.opacity ?? 1) * (Number.isFinite(ownOpacity) ? ownOpacity : 1);
+      (parentState?.opacity ?? 1) *
+      (Number.isFinite(ownOpacity) ? ownOpacity : 1);
     const visible =
       (parentState?.visible ?? true) &&
       style.display !== "none" &&
@@ -367,12 +430,18 @@ function paintFallbackMedia(
   let targetHeight = rect.height;
   const [positionX, positionY] = resolveObjectPosition(style.objectPosition);
   if (style.objectFit === "cover") {
-    const scale = Math.max(rect.width / sourceWidth, rect.height / sourceHeight);
+    const scale = Math.max(
+      rect.width / sourceWidth,
+      rect.height / sourceHeight,
+    );
     cropWidth = rect.width / scale;
     cropHeight = rect.height / scale;
     sourceX = (sourceWidth - cropWidth) * positionX;
     sourceY = (sourceHeight - cropHeight) * positionY;
-  } else if (style.objectFit === "contain" || style.objectFit === "scale-down") {
+  } else if (
+    style.objectFit === "contain" ||
+    style.objectFit === "scale-down"
+  ) {
     const containScale = Math.min(
       rect.width / sourceWidth,
       rect.height / sourceHeight,
@@ -423,7 +492,11 @@ function resolveObjectPosition(position: string): [number, number] {
   ];
 }
 
-function resolvePositionValue(value: string, start: string, end: string): number {
+function resolvePositionValue(
+  value: string,
+  start: string,
+  end: string,
+): number {
   if (value === start) return 0;
   if (value === end) return 1;
   if (value === "center") return 0.5;
@@ -500,12 +573,7 @@ function paintFallbackText(
             ? 1
             : 0;
       const x = rect.left - rootRect.left + rect.width * anchor;
-      ctx.fillText(
-        line,
-        x,
-        rect.top - rootRect.top,
-        Math.max(rect.width, 1),
-      );
+      ctx.fillText(line, x, rect.top - rootRect.top, Math.max(rect.width, 1));
     }
   }
 }
@@ -593,6 +661,7 @@ function initializeAsciify(
         sourceCtx!.reset();
         sourceCtx!.drawElementImage!(content, 0, 0);
         contentDirty = true;
+        scheduleTextMask();
         wake();
       } catch {}
     };
@@ -620,6 +689,7 @@ function initializeAsciify(
       capturedScrollTop = content.scrollTop;
       contentDirty = true;
       fallbackErrorLogged = false;
+      scheduleTextMask();
       wake();
     } catch (error) {
       if (!destroyed && !fallbackErrorLogged) {
@@ -648,7 +718,8 @@ function initializeAsciify(
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const message = gl.getProgramInfoLog(program) || "Unknown program link error";
+    const message =
+      gl.getProgramInfoLog(program) || "Unknown program link error";
     gl.deleteProgram(program);
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
@@ -696,6 +767,91 @@ function initializeAsciify(
 
   let contentMaxX = 1;
 
+  const textMaskTexture = gl.createTexture()!;
+  gl.bindTexture(gl.TEXTURE_2D, textMaskTexture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    1,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    new Uint8Array([0, 0, 0, 0]),
+  );
+
+  const MASK_SCALE = 0.25;
+  const maskCanvas = document.createElement("canvas");
+  const maskCtx = maskCanvas.getContext("2d");
+  let maskDirty = false;
+  let maskTimer = 0;
+  let maskStamp = 0;
+
+  function buildTextMask() {
+    if (!maskCtx) return;
+    const bounds = output.getBoundingClientRect();
+    const width = Math.max(1, Math.round(bounds.width * MASK_SCALE));
+    const height = Math.max(1, Math.round(bounds.height * MASK_SCALE));
+    if (maskCanvas.width !== width || maskCanvas.height !== height) {
+      maskCanvas.width = width;
+      maskCanvas.height = height;
+    }
+    maskCtx.clearRect(0, 0, width, height);
+    maskCtx.fillStyle = "#fff";
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      if (!node.textContent?.trim()) continue;
+      const parent = node.parentElement;
+      if (!parent || (parent.checkVisibility && !parent.checkVisibility())) {
+        continue;
+      }
+      range.selectNodeContents(node);
+      const rects = range.getClientRects();
+      for (let i = 0; i < rects.length; i++) {
+        const r = rects[i];
+        if (r.width < 1 || r.height < 1) continue;
+        if (r.bottom < bounds.top || r.top > bounds.bottom) continue;
+        maskCtx.fillRect(
+          (r.left - bounds.left - 1) * MASK_SCALE,
+          (r.top - bounds.top - 1) * MASK_SCALE,
+          (r.width + 2) * MASK_SCALE,
+          (r.height + 2) * MASK_SCALE,
+        );
+      }
+    }
+    const fields = content.querySelectorAll("input, textarea, select");
+    for (let i = 0; i < fields.length; i++) {
+      const r = fields[i].getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      if (r.bottom < bounds.top || r.top > bounds.bottom) continue;
+      maskCtx.fillRect(
+        (r.left - bounds.left) * MASK_SCALE,
+        (r.top - bounds.top) * MASK_SCALE,
+        r.width * MASK_SCALE,
+        r.height * MASK_SCALE,
+      );
+    }
+    maskDirty = true;
+  }
+
+  function scheduleTextMask() {
+    if (maskTimer) return;
+    const wait = Math.max(0, 120 - (performance.now() - maskStamp));
+    maskTimer = window.setTimeout(() => {
+      maskTimer = 0;
+      maskStamp = performance.now();
+      buildTextMask();
+      start();
+    }, wait);
+  }
+
   function syncCanvasSize(): boolean {
     let changed = false;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -713,7 +869,10 @@ function initializeAsciify(
     if (htmlInCanvas) {
       const cssWidth = Math.max(1, Math.round(source.clientWidth));
       const cssHeight = Math.max(1, Math.round(source.clientHeight));
-      if (source.width !== cssWidth * dpr || source.height !== cssHeight * dpr) {
+      if (
+        source.width !== cssWidth * dpr ||
+        source.height !== cssHeight * dpr
+      ) {
         source.width = cssWidth * dpr;
         source.height = cssHeight * dpr;
         changed = true;
@@ -794,12 +953,30 @@ function initializeAsciify(
     }
   }
 
+  function uploadMask() {
+    if (!maskDirty) return;
+    maskDirty = false;
+    gl!.bindTexture(gl!.TEXTURE_2D, textMaskTexture);
+    gl!.texImage2D(
+      gl!.TEXTURE_2D,
+      0,
+      gl!.RGBA,
+      gl!.RGBA,
+      gl!.UNSIGNED_BYTE,
+      maskCanvas,
+    );
+  }
+
   function render() {
     uploadContent();
+    uploadMask();
     gl!.useProgram(program);
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
     gl!.uniform1i(uniforms.uContent, 0);
+    gl!.activeTexture(gl!.TEXTURE1);
+    gl!.bindTexture(gl!.TEXTURE_2D, textMaskTexture);
+    gl!.uniform1i(uniforms.uTextMask, 1);
     gl!.uniform2f(
       uniforms.uContentOffset,
       htmlInCanvas
@@ -814,6 +991,11 @@ function initializeAsciify(
     gl!.uniform2f(uniforms.uResolution, output.width, output.height);
     const dpr = output.width / Math.max(output.clientWidth, 1);
     const glyphCss = Math.max(config.scale, 0.5);
+    const dotCss = Math.max(1.25, glyphCss * 0.75);
+    gl!.uniform1f(uniforms.uDotPx, dotCss * dpr);
+    gl!.uniform1f(uniforms.uDotLod, Math.max(0, Math.log2(dotCss) - 1));
+    gl!.uniform1f(uniforms.uGlowAmt, config.glow);
+    gl!.uniform1f(uniforms.uAberration, config.aberration);
     const spacing = Math.round(Math.min(Math.max(config.spacing, 0), 3));
     gl!.uniform1f(uniforms.uGlyphPx, glyphCss * dpr);
     gl!.uniform1f(uniforms.uSpacing, spacing);
@@ -991,17 +1173,43 @@ function initializeAsciify(
 
   listenTarget.addEventListener("pointermove", onPointerMove);
   listenTarget.addEventListener("pointerleave", onPointerLeave);
+  content.addEventListener("scroll", scheduleTextMask, {
+    capture: true,
+    passive: true,
+  });
 
   return {
     setOptions(next) {
+      let changed = false;
+      for (const [key, value] of Object.entries(next)) {
+        const prev = config[key as keyof typeof config];
+        if (Array.isArray(value) && Array.isArray(prev)) {
+          if (
+            value.length !== prev.length ||
+            value.some((item, i) => item !== prev[i])
+          ) {
+            changed = true;
+            break;
+          }
+        } else if (prev !== value) {
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) {
+        Object.assign(config, next);
+        return;
+      }
       Object.assign(config, next);
       syncBacking();
+      scheduleTextMask();
       start();
     },
     resize() {
       syncCanvasSize();
       syncBacking();
       queueFallbackCapture();
+      scheduleTextMask();
       start();
     },
     destroy() {
@@ -1010,6 +1218,7 @@ function initializeAsciify(
       window.clearTimeout(themeTimer);
       window.clearTimeout(fallbackCaptureTimer);
       window.clearTimeout(fallbackScrollCaptureTimer);
+      window.clearTimeout(maskTimer);
       observer.disconnect();
       intersection.disconnect();
       themeObserver.disconnect();
@@ -1019,21 +1228,32 @@ function initializeAsciify(
       listenTarget.removeEventListener("pointermove", onPointerMove);
       listenTarget.removeEventListener("pointerleave", onPointerLeave);
       content.removeEventListener("scroll", onContentScroll, true);
+      content.removeEventListener("scroll", scheduleTextMask, {
+        capture: true,
+      });
       content.removeEventListener("load", onFallbackVisualChange, true);
       content.removeEventListener("loadeddata", onFallbackVisualChange, true);
       content.removeEventListener("focusin", onFallbackVisualChange, true);
       content.removeEventListener("focusout", onFallbackVisualChange, true);
       content.removeEventListener("input", onFallbackVisualChange, true);
       content.removeEventListener("change", onFallbackVisualChange, true);
-      content.removeEventListener("transitionend", onFallbackVisualChange, true);
+      content.removeEventListener(
+        "transitionend",
+        onFallbackVisualChange,
+        true,
+      );
       content.removeEventListener(
         "transitioncancel",
         onFallbackVisualChange,
         true,
       );
       content.removeEventListener("animationend", onFallbackVisualChange, true);
-      document.fonts?.removeEventListener("loadingdone", onFallbackVisualChange);
+      document.fonts?.removeEventListener(
+        "loadingdone",
+        onFallbackVisualChange,
+      );
       gl!.deleteTexture(contentTexture);
+      gl!.deleteTexture(textMaskTexture);
       gl!.deleteProgram(program);
       gl!.deleteShader(vertexShader);
       gl!.deleteShader(fragmentShader);
