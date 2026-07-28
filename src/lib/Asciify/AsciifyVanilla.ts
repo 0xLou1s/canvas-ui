@@ -291,8 +291,9 @@ function paintFallbackSnapshot(
   canvas: HTMLCanvasElement,
 ) {
   const rootRect = content.getBoundingClientRect();
-  const width = Math.max(1, Math.round(rootRect.width));
-  const height = Math.max(1, Math.round(rootRect.height));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.max(1, Math.round(rootRect.width * dpr));
+  const height = Math.max(1, Math.round(rootRect.height * dpr));
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
@@ -300,7 +301,9 @@ function paintFallbackSnapshot(
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("2D canvas is unavailable");
+  ctx.resetTransform();
   ctx.clearRect(0, 0, width, height);
+  ctx.scale(dpr, dpr);
 
   const rootClip: FallbackRect = {
     left: rootRect.left,
@@ -519,7 +522,11 @@ function paintFallbackText(
 
   ctx.fillStyle = style.color;
   ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-  ctx.textBaseline = "top";
+  ctx.textBaseline = "alphabetic";
+  if ("letterSpacing" in ctx) {
+    ctx.letterSpacing =
+      style.letterSpacing === "normal" ? "0px" : style.letterSpacing;
+  }
   const textAlign: CanvasTextAlign =
     style.textAlign === "center" ||
     style.textAlign === "right" ||
@@ -531,50 +538,94 @@ function paintFallbackText(
   ctx.textAlign = textAlign;
   ctx.direction = direction;
 
-  for (const node of textNodes) {
-    let text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
-    if (!text) continue;
-    if (style.textTransform === "uppercase") text = text.toUpperCase();
-    if (style.textTransform === "lowercase") text = text.toLowerCase();
+  const whiteSpace = style.whiteSpace;
+  const preservesNewlines =
+    whiteSpace === "pre" ||
+    whiteSpace === "pre-wrap" ||
+    whiteSpace === "pre-line" ||
+    whiteSpace === "break-spaces";
+  const preservesSpaces = preservesNewlines && whiteSpace !== "pre-line";
 
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    const rects = Array.from(range.getClientRects()).filter(
+  const anchor =
+    textAlign === "center"
+      ? 0.5
+      : textAlign === "right" ||
+          (textAlign === "end" && direction === "ltr") ||
+          (textAlign === "start" && direction === "rtl")
+        ? 1
+        : 0;
+
+  function transform(text: string): string {
+    if (style.textTransform === "uppercase") return text.toUpperCase();
+    if (style.textTransform === "lowercase") return text.toLowerCase();
+    return text;
+  }
+
+  function drawAcrossRects(text: string, rects: DOMRect[]) {
+    const visible = rects.filter(
       (rect) =>
         rect.right > rootRect.left &&
         rect.left < rootRect.right &&
         rect.bottom > rootRect.top &&
         rect.top < rootRect.bottom,
     );
-    if (rects.length === 0) continue;
-
-    const totalWidth = rects.reduce((sum, rect) => sum + rect.width, 0);
+    if (visible.length === 0) return;
+    const totalWidth = visible.reduce((sum, rect) => sum + rect.width, 0);
     let offset = 0;
-    for (let index = 0; index < rects.length; index++) {
-      const rect = rects[index];
+    for (let index = 0; index < visible.length; index++) {
+      const rect = visible[index];
       const remaining = text.length - offset;
       if (remaining <= 0) break;
       const count =
-        index === rects.length - 1
+        index === visible.length - 1
           ? remaining
           : Math.min(
               remaining,
               Math.max(1, Math.round((text.length * rect.width) / totalWidth)),
             );
-      const line = text.slice(offset, offset + count).trim();
+      const slice = text.slice(offset, offset + count);
       offset += count;
-      if (!line) continue;
-      const anchor =
-        textAlign === "center"
-          ? 0.5
-          : textAlign === "right" ||
-              (textAlign === "end" && direction === "ltr") ||
-              (textAlign === "start" && direction === "rtl")
-            ? 1
-            : 0;
+      const line = preservesSpaces ? slice : slice.trim();
+      if (!line.trim()) continue;
       const x = rect.left - rootRect.left + rect.width * anchor;
-      ctx.fillText(line, x, rect.top - rootRect.top, Math.max(rect.width, 1));
+      const metrics = ctx.measureText(line);
+      const ascent = metrics.fontBoundingBoxAscent ?? 0;
+      const descent = metrics.fontBoundingBoxDescent ?? 0;
+      const y =
+        ascent > 0
+          ? rect.top -
+            rootRect.top +
+            (rect.height - ascent - descent) / 2 +
+            ascent
+          : rect.bottom - rootRect.top - rect.height * 0.2;
+      ctx.fillText(line, x, y, Math.max(rect.width, 1));
     }
+  }
+
+  for (const node of textNodes) {
+    const raw = node.textContent ?? "";
+    const range = document.createRange();
+
+    if (preservesNewlines) {
+      let position = 0;
+      for (const part of raw.split("\n")) {
+        const start = position;
+        position += part.length + 1;
+        if (!part.trim()) continue;
+        range.setStart(node, start);
+        range.setEnd(node, start + part.length);
+        const text = transform(
+          preservesSpaces ? part : part.replace(/\s+/g, " ").trim(),
+        );
+        drawAcrossRects(text, Array.from(range.getClientRects()));
+      }
+      continue;
+    }
+
+    const text = transform(raw.replace(/\s+/g, " ").trim());
+    if (!text) continue;
+    range.selectNodeContents(node);
+    drawAcrossRects(text, Array.from(range.getClientRects()));
   }
 }
 
@@ -649,6 +700,7 @@ function initializeAsciify(
   let wake = () => {};
   let fallbackSource: HTMLCanvasElement | null = null;
   let fallbackCaptureTimer = 0;
+  let fallbackCaptureDeadline = 0;
   let fallbackScrollCaptureTimer = 0;
   let capturedScrollLeft = 0;
   let capturedScrollTop = 0;
@@ -669,11 +721,12 @@ function initializeAsciify(
 
   function queueFallbackCapture(immediate = false) {
     if (htmlInCanvas || destroyed) return;
+    const delay = immediate ? 0 : FALLBACK_CAPTURE_DELAY;
+    const deadline = performance.now() + delay;
+    if (fallbackCaptureTimer && fallbackCaptureDeadline <= deadline) return;
     window.clearTimeout(fallbackCaptureTimer);
-    fallbackCaptureTimer = window.setTimeout(
-      captureFallback,
-      immediate ? 0 : FALLBACK_CAPTURE_DELAY,
-    );
+    fallbackCaptureDeadline = deadline;
+    fallbackCaptureTimer = window.setTimeout(captureFallback, delay);
   }
 
   function captureFallback() {
@@ -992,8 +1045,14 @@ function initializeAsciify(
     const dpr = output.width / Math.max(output.clientWidth, 1);
     const glyphCss = Math.max(config.scale, 0.5);
     const dotCss = Math.max(1.25, glyphCss * 0.75);
+    const texelsPerCss = htmlInCanvas
+      ? dpr
+      : source.width / Math.max(content.clientWidth, 1);
     gl!.uniform1f(uniforms.uDotPx, dotCss * dpr);
-    gl!.uniform1f(uniforms.uDotLod, Math.max(0, Math.log2(dotCss) - 1));
+    gl!.uniform1f(
+      uniforms.uDotLod,
+      Math.max(0, Math.log2((dotCss * Math.max(texelsPerCss, 0.25)) / dpr) - 1),
+    );
     gl!.uniform1f(uniforms.uGlowAmt, config.glow);
     gl!.uniform1f(uniforms.uAberration, config.aberration);
     const spacing = Math.round(Math.min(Math.max(config.spacing, 0), 3));
