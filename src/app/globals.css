@@ -151,7 +151,6 @@
 
 @keyframes hero-panel-enter {
   from {
-    /* Keep a sliver painted from the first frame so LCP is not delayed */
     clip-path: inset(0 0 98% 0 round 1rem);
   }
   to {
@@ -216,7 +215,6 @@
   animation: marquee-scroll var(--marquee-duration, 60s) linear infinite;
 }
 
-/* Hold the scroll until the client mounts the seamless-loop duplicate */
 .marquee-track:not([data-ready]) {
   animation-play-state: paused;
 }
@@ -592,9 +590,6 @@
   }
 }
 
-/* Synthetic overlay scrollbar for demos whose real scroller lives inside a
-   source canvas (html-in-canvas mode), where the native scrollbar is only
-   part of the captured texture and gets warped or clipped by the effect. */
 .demo-overlay-thumb {
   position: fixed;
   top: 0;
