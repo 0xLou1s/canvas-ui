@@ -34,6 +34,17 @@ const load = (loader: () => Promise<ComponentType<never>>) =>
 
 export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
   {
+    slug: "ascii-object",
+    name: "ASCII Object",
+    description: "A 3D model or image redrawn as shape-matched ASCII.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/ascii-object-entry").then(
+        (m) => m.AsciiObjectEntry,
+      ),
+    ),
+  },
+  {
     slug: "asciify",
     name: "Asciify",
     description: "An ascii lens that follows your cursor.",
@@ -68,6 +79,15 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     ),
   },
   {
+    slug: "canvas",
+    name: "Canvas",
+    description: "The page painted onto canvas, with a brush for a cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/canvas-demo").then((m) => m.CanvasDemo),
+    ),
+  },
+  {
     slug: "cloth",
     name: "Cloth",
     description: "Hangs the page on rippling fabric.",
@@ -86,6 +106,17 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     ),
   },
   {
+    slug: "decrypt-reveal",
+    name: "Decrypt Reveal",
+    description: "UI encrypted into ASCII, decoded by the cursor.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/decrypt-reveal-entry").then(
+        (m) => m.DecryptRevealEntry,
+      ),
+    ),
+  },
+  {
     slug: "dithered-object",
     name: "Dithered Object",
     description: "A 3D model or image rendered through a 1-bit dither.",
@@ -97,12 +128,41 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     ),
   },
   {
+    slug: "displacement",
+    name: "Displacement",
+    description: "Grid cells shearing the page apart under the cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/displacement-demo").then((m) => m.DisplacementDemo),
+    ),
+  },
+  {
     slug: "droplets",
     name: "Droplets",
     description: "Rain droplets refracting the page.",
     kind: "wrap",
     Component: load(() =>
       import("@/demos/droplets-demo").then((m) => m.DropletsDemo),
+    ),
+  },
+  {
+    slug: "flame-wrap",
+    name: "Flame Wrap",
+    description: "A card wrapped in a border of fire.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/flame-wrap-entry").then(
+        (m) => m.FlameWrapEntry,
+      ),
+    ),
+  },
+  {
+    slug: "force-field",
+    name: "Force Field",
+    description: "An energy shield where clicks detonate shockwaves.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/force-field-demo").then((m) => m.ForceFieldDemo),
     ),
   },
   {
@@ -141,6 +201,16 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     kind: "wrap",
     Component: load(() =>
       import("@/demos/glitch-demo").then((m) => m.GlitchDemo),
+    ),
+  },
+  {
+    slug: "glyph-rain",
+    name: "Glyph Rain",
+    description:
+      "Falling glyphs that light up the page, and surge under the cursor.",
+    kind: "wrap",
+    Component: load(() =>
+      import("@/demos/glyph-rain-demo").then((m) => m.GlyphRainDemo),
     ),
   },
   {
@@ -253,6 +323,17 @@ export const PLAYGROUND_DEMOS: PlaygroundDemo[] = [
     kind: "wrap",
     Component: load(() =>
       import("@/demos/shatter-demo").then((m) => m.ShatterDemo),
+    ),
+  },
+  {
+    slug: "liquid-object",
+    name: "Liquid Object",
+    description: "Models dragged through invisible liquid.",
+    kind: "custom",
+    Component: load(() =>
+      import("@/components/playground/entries/liquid-object-entry").then(
+        (m) => m.LiquidObjectEntry,
+      ),
     ),
   },
   {

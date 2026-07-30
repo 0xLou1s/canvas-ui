@@ -63,6 +63,12 @@ const ENTRIES: SearchEntry[] = [
     suggested: true,
   },
   {
+    href: "/docs/components/ascii-object",
+    label: "ASCII Object",
+    section: "Components",
+    hint: "ascii 3d model glb gltf svg image studio three.js characters glyph shape terminal",
+  },
+  {
     href: "/docs/components/asciify",
     label: "Asciify",
     section: "Components",
@@ -87,6 +93,12 @@ const ENTRIES: SearchEntry[] = [
     hint: "droplet metaball glass refraction cursor trail liquid blob",
   },
   {
+    href: "/docs/components/canvas",
+    label: "Canvas",
+    section: "Components",
+    hint: "painting woven fabric texture paper halftone grain screen print",
+  },
+  {
     href: "/docs/components/cloth",
     label: "Cloth",
     section: "Components",
@@ -99,16 +111,40 @@ const ENTRIES: SearchEntry[] = [
     hint: "fog mist wind",
   },
   {
+    href: "/docs/components/decrypt-reveal",
+    label: "Decrypt Reveal",
+    section: "Components",
+    hint: "ascii cipher hover matrix hacker encrypt decode text",
+  },
+  {
     href: "/docs/components/dithered-object",
     label: "Dithered Object",
     section: "Components",
     hint: "3d model gltf glb svg png bayer halftone floyd steinberg",
   },
   {
+    href: "/docs/components/displacement",
+    label: "Displacement",
+    section: "Components",
+    hint: "grid distortion warp ripple chromatic aberration grain",
+  },
+  {
     href: "/docs/components/droplets",
     label: "Droplets",
     section: "Components",
     hint: "rain water refraction",
+  },
+  {
+    href: "/docs/components/flame-wrap",
+    label: "Flame Wrap",
+    section: "Components",
+    hint: "fire flame border burning hot sparks heat molten edge card",
+  },
+  {
+    href: "/docs/components/force-field",
+    label: "Force Field",
+    section: "Components",
+    hint: "shield energy hexagon hex grid lattice ripple shockwave impact refraction plasma sci-fi",
   },
   {
     href: "/docs/components/frost",
@@ -133,6 +169,12 @@ const ENTRIES: SearchEntry[] = [
     label: "Glitch",
     section: "Components",
     hint: "glitch burst rgb split slices corruption datamosh broadcast tear noise",
+  },
+  {
+    href: "/docs/components/glyph-rain",
+    label: "Glyph Rain",
+    section: "Components",
+    hint: "matrix rain code falling glyphs katakana light glow digital",
   },
   {
     href: "/docs/components/grid",
@@ -205,6 +247,12 @@ const ENTRIES: SearchEntry[] = [
     label: "Shatter",
     section: "Components",
     hint: "3d glass shards break lift float refraction pieces fragments cursor lens broken tiles",
+  },
+  {
+    href: "/docs/components/liquid-object",
+    label: "Liquid Object",
+    section: "Components",
+    hint: "liquid fluid water ripple warp distort chromatic aberration rainbow fringe swirl eddy melt 3d model glb svg png image logo cursor three.js",
   },
   {
     href: "/docs/components/vhs",

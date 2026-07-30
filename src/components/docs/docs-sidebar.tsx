@@ -14,7 +14,11 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { SiteLogo } from "@/components/common/site-logo";
-import { COMPONENTS, isLightVideo, type ComponentEntry } from "@/data/components";
+import {
+  COMPONENTS,
+  isLightVideo,
+  type ComponentEntry,
+} from "@/data/components";
 import { cn } from "@/lib/utils";
 
 const PREVIEWS = new Map(COMPONENTS.map((entry) => [entry.href, entry]));
@@ -23,6 +27,17 @@ const PREVIEW_H = 168;
 const EASE = [0.23, 1, 0.32, 1] as const;
 
 const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
+
+const NEW_HREFS = new Set([
+  "/docs/components/ascii-object",
+  "/docs/components/canvas",
+  "/docs/components/decrypt-reveal",
+  "/docs/components/displacement",
+  "/docs/components/flame-wrap",
+  "/docs/components/force-field",
+  "/docs/components/glyph-rain",
+  "/docs/components/liquid-object",
+]);
 
 function subscribeHover(callback: () => void) {
   const mql = window.matchMedia(HOVER_QUERY);
@@ -43,18 +58,25 @@ const sections = [
     title: "Components",
     items: [
       { href: "/components", label: "Browse All" },
+      { href: "/docs/components/ascii-object", label: "ASCII Object" },
       { href: "/docs/components/asciify", label: "Asciify" },
       { href: "/docs/components/bend", label: "Bend" },
       { href: "/docs/components/blaze", label: "Blaze" },
       { href: "/docs/components/bubble", label: "Bubble" },
+      { href: "/docs/components/canvas", label: "Canvas" },
       { href: "/docs/components/cloth", label: "Cloth" },
       { href: "/docs/components/clouds", label: "Clouds" },
+      { href: "/docs/components/decrypt-reveal", label: "Decrypt Reveal" },
       { href: "/docs/components/dithered-object", label: "Dithered Object" },
+      { href: "/docs/components/displacement", label: "Displacement" },
       { href: "/docs/components/droplets", label: "Droplets" },
+      { href: "/docs/components/flame-wrap", label: "Flame Wrap" },
+      { href: "/docs/components/force-field", label: "Force Field" },
       { href: "/docs/components/frost", label: "Frost" },
       { href: "/docs/components/glass", label: "Glass" },
       { href: "/docs/components/glass-object", label: "Glass Object" },
       { href: "/docs/components/glitch", label: "Glitch" },
+      { href: "/docs/components/glyph-rain", label: "Glyph Rain" },
       { href: "/docs/components/grid", label: "Grid" },
       { href: "/docs/components/hex-float", label: "Hex Float" },
       { href: "/docs/components/laser", label: "Laser" },
@@ -67,6 +89,7 @@ const sections = [
       { href: "/docs/components/retro-dither", label: "Retro Dither" },
       { href: "/docs/components/ripple", label: "Ripple" },
       { href: "/docs/components/shatter", label: "Shatter" },
+      { href: "/docs/components/liquid-object", label: "Liquid Object" },
       { href: "/docs/components/vhs", label: "VHS" },
     ],
   },
@@ -158,13 +181,22 @@ export function DocsNavList({
                       entry ? (event) => place(event, false) : undefined
                     }
                     className={cn(
-                      "block rounded-lg px-2 py-1.5 text-sm transition-colors duration-150",
+                      "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150",
                       active
                         ? "bg-muted font-medium text-foreground"
                         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
                   >
                     {item.label}
+                    {NEW_HREFS.has(item.href) && (
+                      <>
+                        <span
+                          aria-hidden
+                          className="size-1.5 shrink-0 rounded-full bg-blue-500"
+                        />
+                        <span className="sr-only">New</span>
+                      </>
+                    )}
                   </Link>
                 </li>
               );

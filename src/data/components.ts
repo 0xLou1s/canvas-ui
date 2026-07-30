@@ -7,15 +7,30 @@ export interface ComponentEntry {
 }
 
 export const LIGHT_VIDEOS = new Set([
+  "/assets/videos/ascii-object.webm",
+  "/assets/videos/canvas.webm",
+  "/assets/videos/decrypt-reveal.webm",
+  "/assets/videos/displacement.webm",
+  "/assets/videos/flame-wrap.webm",
+  "/assets/videos/force-field.webm",
   "/assets/videos/frost.webm",
   "/assets/videos/glitch.webm",
+  "/assets/videos/glyph-rain.webm",
   "/assets/videos/hex-float.webm",
+  "/assets/videos/liquid-object.webm",
   "/assets/videos/ripple.webm",
 ]);
 
 export const isLightVideo = (src: string) => LIGHT_VIDEOS.has(src);
 
 export const COMPONENTS: ComponentEntry[] = [
+  {
+    href: "/docs/components/ascii-object",
+    name: "ASCII Object",
+    description:
+      "Any GLB/glTF model, SVG, or image floating in a studio scene, redrawn as shape-matched ASCII characters.",
+    video: "/assets/videos/ascii-object.webm",
+  },
   {
     href: "/docs/components/asciify",
     name: "Asciify",
@@ -45,6 +60,13 @@ export const COMPONENTS: ComponentEntry[] = [
     video: "/assets/videos/bubble.webm",
   },
   {
+    href: "/docs/components/canvas",
+    name: "Canvas",
+    description:
+      "Paints your live HTML onto woven artist canvas, with a cursor that drags ridges of wet paint across the weave.",
+    video: "/assets/videos/canvas.webm",
+  },
+  {
     href: "/docs/components/cloth",
     name: "Cloth",
     description:
@@ -59,6 +81,13 @@ export const COMPONENTS: ComponentEntry[] = [
     video: "/assets/videos/clouds.webm",
   },
   {
+    href: "/docs/components/decrypt-reveal",
+    name: "Decrypt Reveal",
+    description:
+      "Renders your live HTML as ASCII cipher text that decrypts into the crisp UI around the cursor.",
+    video: "/assets/videos/decrypt-reveal.webm",
+  },
+  {
     href: "/docs/components/dithered-object",
     name: "Dithered Object",
     description:
@@ -66,11 +95,32 @@ export const COMPONENTS: ComponentEntry[] = [
     video: "/assets/videos/dithered-object.webm",
   },
   {
+    href: "/docs/components/displacement",
+    name: "Displacement",
+    description:
+      "A displacement grid that ripples your live HTML away from the cursor, with color fringing and grain.",
+    video: "/assets/videos/displacement.webm",
+  },
+  {
     href: "/docs/components/droplets",
     name: "Droplets",
     description:
       "Rain droplets that run down the screen and refract your live HTML.",
     video: "/assets/videos/droplets.webm",
+  },
+  {
+    href: "/docs/components/flame-wrap",
+    name: "Flame Wrap",
+    description:
+      "Wraps any element in a border of fire with molten edges, sparks, and heat shimmer.",
+    video: "/assets/videos/flame-wrap.webm",
+  },
+  {
+    href: "/docs/components/force-field",
+    name: "Force Field",
+    description:
+      "An energy shield over your live HTML where clicks detonate shockwaves that refract the page.",
+    video: "/assets/videos/force-field.webm",
   },
   {
     href: "/docs/components/frost",
@@ -99,6 +149,13 @@ export const COMPONENTS: ComponentEntry[] = [
     description:
       "Broadcast glitch bursts that tear your live HTML into shifted slices with RGB splits and corrupted blocks.",
     video: "/assets/videos/glitch.webm",
+  },
+  {
+    href: "/docs/components/glyph-rain",
+    name: "Glyph Rain",
+    description:
+      "Falling glyph streams that light up your live HTML, with drop heads that surge where your cursor cuts through.",
+    video: "/assets/videos/glyph-rain.webm",
   },
   {
     href: "/docs/components/grid",
@@ -183,6 +240,13 @@ export const COMPONENTS: ComponentEntry[] = [
     description:
       "Breaks your live HTML into 3D glass shards that lift, float, and refract around the cursor, with perspective and soft shadows.",
     video: "/assets/videos/shatter.webm",
+  },
+  {
+    href: "/docs/components/liquid-object",
+    name: "Liquid Object",
+    description:
+      "Drags any 3D model, SVG, or image through invisible liquid that swirls under the cursor and splits the light into color.",
+    video: "/assets/videos/liquid-object.webm",
   },
   {
     href: "/docs/components/vhs",
