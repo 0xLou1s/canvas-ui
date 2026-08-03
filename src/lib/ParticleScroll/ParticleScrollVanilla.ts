@@ -663,6 +663,13 @@ export function createParticleScroll(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) =>
+            config[key as keyof ParticleScrollOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

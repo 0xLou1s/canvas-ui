@@ -616,6 +616,12 @@ export function createLaser(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof LaserOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

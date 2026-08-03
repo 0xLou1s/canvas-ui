@@ -734,6 +734,12 @@ export function createClouds(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof CloudsOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       syncCanvasSize();
       syncBaseColor();

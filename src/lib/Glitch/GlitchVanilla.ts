@@ -395,6 +395,12 @@ export function createGlitch(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof GlitchOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

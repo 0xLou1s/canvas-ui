@@ -486,6 +486,13 @@ export function createParticleReveal(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) =>
+            config[key as keyof ParticleRevealOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

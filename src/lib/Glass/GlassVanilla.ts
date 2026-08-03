@@ -584,6 +584,12 @@ export function createGlass(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof GlassOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

@@ -849,6 +849,12 @@ export function createCloth(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof ClothOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       syncBacking();
       start();

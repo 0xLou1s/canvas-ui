@@ -1129,6 +1129,12 @@ export function createFrost(
       start();
     },
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof FrostOptions] !== value,
+        )
+      )
+        return;
       const { quality, ...rest } = next;
       const qualityChanged =
         quality !== undefined && quality !== config.quality;

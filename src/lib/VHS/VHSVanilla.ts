@@ -521,6 +521,12 @@ export function createVHS(
 
   return {
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof VHSOptions] !== value,
+        )
+      )
+        return;
       Object.assign(config, next);
       start();
     },

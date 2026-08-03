@@ -861,6 +861,12 @@ export function createLiquid(
       start();
     },
     setOptions(next) {
+      if (
+        !Object.entries(next).some(
+          ([key, value]) => config[key as keyof LiquidOptions] !== value,
+        )
+      )
+        return;
       const { simResolution, dyeResolution, ...rest } = next;
       void simResolution;
       void dyeResolution;
