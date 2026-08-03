@@ -2,11 +2,7 @@
 
 import { type ReactNode } from "react";
 
-import {
-  color,
-  radio,
-  scrub,
-} from "@/components/demos/control-schema";
+import { color, radio, scrub } from "@/components/demos/control-schema";
 import {
   DemoControls,
   useDemoScrollbarGutter,
@@ -28,9 +24,16 @@ const CONTROLS = {
   contrast: scrub("Contrast", 1, { min: 0.5, max: 2, step: 0.05 }),
   brightness: scrub("Brightness", 0, { min: -0.5, max: 0.5, step: 0.05 }),
   invert: scrub("Invert", 0, { min: 0, max: 1, step: 0.05 }),
+  glow: scrub("Text glow", 0.75, { min: 0, max: 1, step: 0.05 }),
+  aberration: scrub("Color fringe", 0.75, { min: 0, max: 1, step: 0.05 }),
   strength: scrub("Strength", 1, { min: 0, max: 1, step: 0.05 }),
   baseStrength: scrub("Base strength", 0, { min: 0, max: 1, step: 0.05 }),
-  followSpeed: scrub("Follow speed", 3, { min: 1, max: 20, step: 0.5, decimals: 1 }),
+  followSpeed: scrub("Follow speed", 3, {
+    min: 1,
+    max: 20,
+    step: 0.5,
+    decimals: 1,
+  }),
   background: color("Background", "#000000"),
 };
 

@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 import { HeroReveal } from "@/components/landing/hero-reveal";
 import { CopyButton } from "@/components/docs/copy-button";
+import { COMPONENTS } from "@/data/components";
 
 const INSTALL_COMMAND =
   "npx shadcn@latest add @canvas-ui/particle-reveal-react";
@@ -76,7 +77,7 @@ export function Hero() {
                 />
                 <p className="text-sm font-medium sm:text-base">Components</p>
                 <p className="mt-8 text-4xl font-medium tracking-tight sm:mt-12 sm:text-6xl">
-                  25
+                  {COMPONENTS.length}
                 </p>
                 <p className="mt-3 font-mono text-[10px] tracking-widest text-white/70 uppercase sm:text-xs">
                   And counting

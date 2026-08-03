@@ -14,6 +14,13 @@ interface ComponentDef {
 }
 
 const COMPONENTS: Record<string, ComponentDef> = {
+  "ascii-object": {
+    base: "AsciiObject",
+    description:
+      "Renders any GLB/glTF model, SVG, or image in a floating studio scene as ASCII characters chosen by shape, so glyphs trace the object's edges. Built on three.js.",
+    dependencies: ["three"],
+    devDependencies: ["@types/three"],
+  },
   asciify: {
     base: "Asciify",
     description:
@@ -39,6 +46,11 @@ const COMPONENTS: Record<string, ComponentDef> = {
     description:
       "A glassy droplet that trails the cursor as blending metaballs and refracts the live page beneath it, with dispersion, frost, and an iridescent sheen. The HTML stays interactive. No dependencies.",
   },
+  canvas: {
+    base: "Canvas",
+    description:
+      "Paints your page onto woven artist canvas, with fiber texture, paper tint, grain, a dotted halftone screen, and a soft intro crossfade. Text stays crisp and readable. The HTML stays interactive. No dependencies.",
+  },
   cloth: {
     base: "Cloth",
     description:
@@ -48,6 +60,11 @@ const COMPONENTS: Record<string, ComponentDef> = {
     base: "Clouds",
     description:
       "Procedural fog that drifts over your page and blurs what it covers. Cursor movement parts the clouds. The HTML stays interactive. No dependencies.",
+  },
+  "decrypt-reveal": {
+    base: "DecryptReveal",
+    description:
+      "Renders your page as real ASCII cipher text that decodes back into crisp UI around the cursor behind a flickering wavefront. The HTML stays interactive. No dependencies.",
   },
   liquid: {
     base: "Liquid",
@@ -66,10 +83,25 @@ const COMPONENTS: Record<string, ComponentDef> = {
     dependencies: ["three"],
     devDependencies: ["@types/three"],
   },
+  displacement: {
+    base: "Displacement",
+    description:
+      "Warps your live HTML on a displacement grid that ripples away from the cursor, with chromatic fringing and film grain in the disturbed areas. The HTML stays interactive. No dependencies.",
+  },
   droplets: {
     base: "Droplets",
     description:
       "Rain droplets that run down the screen and refract your page behind them. The HTML stays interactive. No dependencies.",
+  },
+  "flame-wrap": {
+    base: "FlameWrap",
+    description:
+      "Wraps any element in a perfectly aligned border of fire: flames rise from the top edge, the outline glows molten, sparks fly, and the content shimmers with heat. The HTML stays interactive. No dependencies.",
+  },
+  "force-field": {
+    base: "ForceField",
+    description:
+      "Projects an energy shield lattice over your live HTML. The cursor charges cells as it crosses them and every click detonates a shockwave ripple that refracts the page beneath, with bloom, grain, and a burning reveal dissolve. The HTML stays interactive. No dependencies.",
   },
   "particle-object": {
     base: "ParticleObject",
@@ -97,6 +129,11 @@ const COMPONENTS: Record<string, ComponentDef> = {
     base: "Glitch",
     description:
       "Broadcast glitch bursts that tear the page into shifted slices with RGB splits, corrupted blocks, and analog noise, then settle back to a clean read. The HTML stays interactive. No dependencies.",
+  },
+  "glyph-rain": {
+    base: "GlyphRain",
+    description:
+      "Rains glowing glyph streams over your live HTML while every drop head casts a real pool of light onto the page beneath, with embossed relief shading. The HTML stays interactive. No dependencies.",
   },
   frost: {
     base: "Frost",
@@ -142,6 +179,13 @@ const COMPONENTS: Record<string, ComponentDef> = {
     base: "GlassObject",
     description:
       "Turns any GLB/glTF model, SVG, or image into a floating liquid-glass object with real refraction, chromatic dispersion, frost, and tinted absorption, lit by a studio environment. Built on three.js.",
+    dependencies: ["three"],
+    devDependencies: ["@types/three"],
+  },
+  "liquid-object": {
+    base: "LiquidObject",
+    description:
+      "Renders any GLB/glTF model, SVG, or image in a studio environment, then drags it through an invisible GPU fluid that swirls under the cursor and splits the light into chromatic fringes. Built on three.js.",
     dependencies: ["three"],
     devDependencies: ["@types/three"],
   },
