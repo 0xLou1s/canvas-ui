@@ -64,12 +64,13 @@ export function PreviewVideo({
     card.addEventListener("focusout", pause);
     return () => {
       io.disconnect();
+      video.pause();
       card.removeEventListener("pointerenter", play);
       card.removeEventListener("pointerleave", pause);
       card.removeEventListener("focusin", play);
       card.removeEventListener("focusout", pause);
     };
-  }, []);
+  }, [src]);
 
   return (
     <video
