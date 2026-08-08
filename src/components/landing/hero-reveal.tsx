@@ -35,6 +35,19 @@ export function HeroReveal({
     let last = performance.now();
     let inView = true;
     let running = false;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    let hostRect = host.getBoundingClientRect();
+
+    const updateHostRect = () => {
+      hostRect = host.getBoundingClientRect();
+    };
+
+    const resizeObserver = new ResizeObserver(updateHostRect);
+    resizeObserver.observe(host);
+    window.addEventListener("resize", updateHostRect);
+    window.addEventListener("scroll", updateHostRect, { passive: true });
 
     const onMove = (event: PointerEvent) => {
       if (event.isTrusted) userActive = true;
@@ -58,12 +71,11 @@ export function HeroReveal({
           0.5 + 0.34 * Math.sin(t * 0.37) + 0.14 * Math.sin(t * 0.93 + 1.7);
         const ny =
           0.5 + 0.3 * Math.sin(t * 0.53 + 0.8) + 0.14 * Math.sin(t * 1.19 + 4.1);
-        const rect = host.getBoundingClientRect();
         target.dispatchEvent(
           new PointerEvent("pointermove", {
             bubbles: true,
-            clientX: rect.left + rect.width * nx,
-            clientY: rect.top + rect.height * ny,
+            clientX: hostRect.left + hostRect.width * nx,
+            clientY: hostRect.top + hostRect.height * ny,
           }),
         );
       }
@@ -71,7 +83,7 @@ export function HeroReveal({
     };
 
     const start = () => {
-      if (running || !inView || document.hidden) return;
+      if (reducedMotion || running || !inView || document.hidden) return;
       running = true;
       last = performance.now();
       raf = requestAnimationFrame(tick);
@@ -107,7 +119,10 @@ export function HeroReveal({
     return () => {
       stop();
       observer.disconnect();
+      resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("resize", updateHostRect);
+      window.removeEventListener("scroll", updateHostRect);
       host.removeEventListener("pointermove", onMove, true);
       host.removeEventListener("pointerleave", onLeave, true);
     };
