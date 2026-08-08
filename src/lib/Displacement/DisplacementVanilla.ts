@@ -519,9 +519,9 @@ export function createDisplacement(
     mouse.gate = 0;
   }
 
-  pointerHost.addEventListener("pointermove", onPointerMove);
-  pointerHost.addEventListener("pointerleave", onPointerLeave);
-  pointerHost.addEventListener("pointercancel", onPointerLeave);
+  pointerHost.addEventListener("pointermove", onPointerMove, { passive: true });
+  pointerHost.addEventListener("pointerleave", onPointerLeave, { passive: true });
+  pointerHost.addEventListener("pointercancel", onPointerLeave, { passive: true });
 
   const observer = new ResizeObserver(() => {
     syncCanvasSize();

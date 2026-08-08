@@ -764,10 +764,10 @@ export function createGlyphRain(
     start();
   }
 
-  pointerHost.addEventListener("pointermove", onPointerMove);
-  pointerHost.addEventListener("pointerleave", onPointerLeave);
-  pointerHost.addEventListener("pointercancel", onPointerLeave);
-  pointerHost.addEventListener("pointerdown", onPointerDown);
+  pointerHost.addEventListener("pointermove", onPointerMove, { passive: true });
+  pointerHost.addEventListener("pointerleave", onPointerLeave, { passive: true });
+  pointerHost.addEventListener("pointercancel", onPointerLeave, { passive: true });
+  pointerHost.addEventListener("pointerdown", onPointerDown, { passive: true });
 
   const observer = new ResizeObserver(() => {
     syncCanvasSize();

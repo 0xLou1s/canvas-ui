@@ -670,9 +670,9 @@ export function createRetroDither(
     start();
   }
 
-  listenTarget.addEventListener("pointermove", onPointerMove);
-  listenTarget.addEventListener("pointerleave", onPointerLeave);
-  listenTarget.addEventListener("pointerdown", onPointerDown);
+  listenTarget.addEventListener("pointermove", onPointerMove, { passive: true });
+  listenTarget.addEventListener("pointerleave", onPointerLeave, { passive: true });
+  listenTarget.addEventListener("pointerdown", onPointerDown, { passive: true });
   content.addEventListener("scroll", scheduleTextMask, {
     capture: true,
     passive: true,
