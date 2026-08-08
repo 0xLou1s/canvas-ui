@@ -1091,8 +1091,8 @@ export function createFrost(
   }
 
   const listenTarget = output.parentElement ?? output;
-  listenTarget.addEventListener("pointermove", onPointerMove as EventListener);
-  listenTarget.addEventListener("pointerdown", onPointerMove as EventListener);
+  listenTarget.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
+  listenTarget.addEventListener("pointerdown", onPointerMove as EventListener, { passive: true });
   listenTarget.addEventListener(
     "pointerleave",
     onPointerLeave as EventListener,

@@ -669,8 +669,8 @@ export function createShatter(
     start();
   }
 
-  listenTarget.addEventListener("pointermove", onPointerMove);
-  listenTarget.addEventListener("pointerleave", onPointerLeave);
+  listenTarget.addEventListener("pointermove", onPointerMove, { passive: true });
+  listenTarget.addEventListener("pointerleave", onPointerLeave, { passive: true });
   content.addEventListener("scroll", start, { passive: true });
 
   return {
