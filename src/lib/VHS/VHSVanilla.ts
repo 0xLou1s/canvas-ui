@@ -453,7 +453,10 @@ export function createVHS(
     gl!.uniform1f(uniforms.uGrain, Math.max(config.grain, 0));
     gl!.uniform1f(uniforms.uScanlines, Math.max(config.scanlines, 0));
     gl!.uniform1f(uniforms.uVignette, Math.max(config.vignette, 0));
-    gl!.uniform1f(uniforms.uBarrel, Math.max(config.barrel, 0));
+    gl!.uniform1f(
+      uniforms.uBarrel,
+      htmlInCanvas ? Math.max(config.barrel, 0) : 0,
+    );
     gl!.uniform3f(uniforms.uBezel, bezel[0], bezel[1], bezel[2]);
     gl!.uniform1f(uniforms.uCreaseNoise, noiseCpu(time, time));
     gl!.uniform1f(uniforms.uSaturation, config.saturation);
