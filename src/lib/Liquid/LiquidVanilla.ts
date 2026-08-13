@@ -337,6 +337,12 @@ export function createLiquid(
   });
   if (!gl || gl.isContextLost()) return null;
 
+  const supportsFloatTargets = Boolean(
+    gl.getExtension("EXT_color_buffer_float") ||
+      gl.getExtension("EXT_color_buffer_half_float"),
+  );
+  if (!supportsFloatTargets) return null;
+
   const sourceCtx = source.getContext("2d") as ElementImageContext | null;
   const paintable = source as PaintableCanvas;
   const htmlInCanvas = Boolean(
@@ -359,7 +365,6 @@ export function createLiquid(
     };
   }
 
-  gl.getExtension("EXT_color_buffer_float");
   const supportsLinear = Boolean(gl.getExtension("OES_texture_float_linear"));
   const filtering = supportsLinear ? gl.LINEAR : gl.NEAREST;
 

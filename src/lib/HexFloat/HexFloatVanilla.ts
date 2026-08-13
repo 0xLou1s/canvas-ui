@@ -645,6 +645,12 @@ export function createHexFloat(
   });
   if (!gl || gl.isContextLost()) return null;
 
+  const supportsFloatTargets = Boolean(
+    gl.getExtension("EXT_color_buffer_float") ||
+      gl.getExtension("EXT_color_buffer_half_float"),
+  );
+  if (!supportsFloatTargets) return null;
+
   const sourceCtx = source.getContext("2d") as ElementImageContext | null;
   const paintable = source as PaintableCanvas;
   const htmlInCanvas = Boolean(
@@ -704,7 +710,6 @@ export function createHexFloat(
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-  gl.getExtension("EXT_color_buffer_float");
   const supportsLinear = Boolean(gl.getExtension("OES_texture_float_linear"));
   const filtering = supportsLinear ? gl.LINEAR : gl.NEAREST;
 
