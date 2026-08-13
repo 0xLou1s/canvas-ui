@@ -21,6 +21,7 @@ export function PreviewVideo({
 
     let hovered = false;
     let primed = false;
+    let cancelled = false;
 
     const prime = () => {
       if (primed) return;
@@ -28,7 +29,7 @@ export function PreviewVideo({
       void video
         .play()
         .then(() => {
-          if (hovered) return;
+          if (cancelled || hovered) return;
           video.pause();
           video.currentTime = 0;
         })
@@ -63,6 +64,7 @@ export function PreviewVideo({
     card.addEventListener("focusin", play);
     card.addEventListener("focusout", pause);
     return () => {
+      cancelled = true;
       io.disconnect();
       video.pause();
       card.removeEventListener("pointerenter", play);
