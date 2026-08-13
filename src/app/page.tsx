@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Agents } from "@/components/landing/agents";
 import { Cta } from "@/components/landing/cta";
 import { Faq } from "@/components/landing/faq";
+import { FeaturedVideos } from "@/components/landing/featured-videos";
 import { Frameworks } from "@/components/landing/frameworks";
 import { Gallery } from "@/components/landing/gallery";
 import { Hero } from "@/components/landing/hero";
@@ -52,6 +53,7 @@ export default function Home() {
           />
           <Hero />
           <Gallery />
+          <FeaturedVideos />
           <HowItWorks />
           <Frameworks />
           <Agents />
