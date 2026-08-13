@@ -5,6 +5,7 @@ import { Play, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
+import { CommunityQuotes } from "@/components/landing/community-quotes";
 import { Reveal } from "@/components/landing/reveal";
 import { Stitches } from "@/components/landing/stitches";
 
@@ -112,6 +113,8 @@ export function FeaturedVideos() {
               </Reveal>
             ))}
           </ul>
+
+          <CommunityQuotes />
         </div>
       </section>
 
