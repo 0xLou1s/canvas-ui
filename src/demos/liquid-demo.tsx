@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 
-import { color, scrub, toggle } from "@/components/demos/control-schema";
+import { color, radio, scrub, toggle } from "@/components/demos/control-schema";
 import {
   ColorRow,
   DemoControls,
@@ -12,6 +12,11 @@ import { useDemoControls } from "@/hooks/use-demo-controls";
 import { Liquid } from "@/lib/Liquid/Liquid";
 
 const CONTROLS = {
+  quality: radio("Quality", "medium", [
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+  ]),
   force: scrub("Force", 1.1, { min: 0, max: 5, step: 0.1, decimals: 1 }),
   radius: scrub("Radius", 0.3, { min: 0.05, max: 1.5, step: 0.05 }),
   curl: scrub("Curl", 1.9, { min: 0, max: 10, step: 0.1, decimals: 1 }),
@@ -41,6 +46,12 @@ const CONTROLS = {
   rainbow: toggle("Rainbow", false),
 };
 
+const RESOLUTION_PRESETS = {
+  low: { simResolution: 32, dyeResolution: 128 },
+  medium: { simResolution: 128, dyeResolution: 512 },
+  high: { simResolution: 256, dyeResolution: 1024 },
+} as const;
+
 function hexToRgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
   return [
@@ -55,12 +66,14 @@ export function LiquidDemo({ children }: { children: ReactNode }) {
   const { setValue } = controls;
   const setContentEl = useDemoScrollbarGutter();
 
-  const { color, rainbow, ...values } = controls.values;
+  const { color, rainbow, quality, ...values } = controls.values;
+  const resolution = RESOLUTION_PRESETS[quality];
 
   return (
     <>
       <Liquid
         {...values}
+        {...resolution}
         color={hexToRgb(color)}
         rainbow={rainbow}
         className="page-enter inset-0 z-30"
@@ -71,6 +84,17 @@ export function LiquidDemo({ children }: { children: ReactNode }) {
           className="min-h-full bg-background px-5 pt-24 pb-10 sm:px-8 lg:pt-16 lg:pr-8 lg:pl-72"
         >
           {children}
+          <div className="pointer-events-none fixed right-5 bottom-5 z-40 rounded-md border border-foreground/15 bg-background/85 px-3 py-2 font-mono text-xs text-foreground/75 shadow-lg backdrop-blur-sm sm:right-8">
+            <div className="font-sans font-medium text-foreground">
+              Quality: {quality}
+            </div>
+            <div>
+              Simulation: {resolution.simResolution}x{resolution.simResolution}
+            </div>
+            <div>
+              Dye: {resolution.dyeResolution}x{resolution.dyeResolution}
+            </div>
+          </div>
         </div>
       </Liquid>
 
@@ -78,7 +102,12 @@ export function LiquidDemo({ children }: { children: ReactNode }) {
         title="Liquid controls"
         snippet={{
           component: "Liquid",
-          props: { ...values, color: hexToRgb(color), rainbow },
+          props: {
+            ...values,
+            ...resolution,
+            color: hexToRgb(color),
+            rainbow,
+          },
         }}
         controls={controls}
         rows={{

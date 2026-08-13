@@ -41,7 +41,7 @@ export interface LiquidElements {
 export interface LiquidInstance {
   /** Inject a splat at (x, y) in [0,1] space with velocity (dx, dy). */
   splat: (x: number, y: number, dx: number, dy: number) => void;
-  /** Update simulation options live. Resolution changes are ignored. */
+  /** Update simulation options live, including simulation target resolution. */
   setOptions: (options: LiquidOptions) => void;
   /** Re-read canvas size. Call when the element is resized. */
   resize: () => void;
@@ -302,6 +302,14 @@ interface DoubleTarget {
   swap: () => void;
 }
 
+interface FluidTargets {
+  velocity: DoubleTarget;
+  dye: DoubleTarget;
+  divergence: Target;
+  curl: Target;
+  pressure: DoubleTarget;
+}
+
 export function supportsHtmlInCanvas(): boolean {
   if (typeof document === "undefined") return false;
   const probe = document.createElement("canvas") as PaintableCanvas;
@@ -473,46 +481,70 @@ export function createLiquid(
     };
   }
 
-  const velocity = createDoubleTarget(
+  function createFluidTargets(
+    simResolution: number,
+    dyeResolution: number,
+  ): FluidTargets {
+    return {
+      velocity: createDoubleTarget(
+        simResolution,
+        gl!.RG16F,
+        gl!.RG,
+        filtering,
+      ),
+      dye: createDoubleTarget(
+        dyeResolution,
+        gl!.RGBA16F,
+        gl!.RGBA,
+        filtering,
+      ),
+      divergence: createTarget(
+        simResolution,
+        gl!.R16F,
+        gl!.RED,
+        gl!.NEAREST,
+      ),
+      curl: createTarget(
+        simResolution,
+        gl!.R16F,
+        gl!.RED,
+        gl!.NEAREST,
+      ),
+      pressure: createDoubleTarget(
+        simResolution,
+        gl!.R16F,
+        gl!.RED,
+        gl!.NEAREST,
+      ),
+    };
+  }
+
+  let fluidTargets = createFluidTargets(
     config.simResolution,
-    gl.RG16F,
-    gl.RG,
-    filtering,
-  );
-  const dye = createDoubleTarget(
     config.dyeResolution,
-    gl.RGBA16F,
-    gl.RGBA,
-    filtering,
-  );
-  const divergence = createTarget(
-    config.simResolution,
-    gl.R16F,
-    gl.RED,
-    gl.NEAREST,
-  );
-  const curl = createTarget(config.simResolution, gl.R16F, gl.RED, gl.NEAREST);
-  const pressure = createDoubleTarget(
-    config.simResolution,
-    gl.R16F,
-    gl.RED,
-    gl.NEAREST,
   );
 
-  function releaseAll() {
+  function releaseTargets(targets: FluidTargets) {
     [
-      velocity.read,
-      velocity.write,
-      dye.read,
-      dye.write,
-      pressure.read,
-      pressure.write,
-      divergence,
-      curl,
+      targets.velocity.read,
+      targets.velocity.write,
+      targets.dye.read,
+      targets.dye.write,
+      targets.pressure.read,
+      targets.pressure.write,
+      targets.divergence,
+      targets.curl,
     ].forEach((t) => {
       gl!.deleteFramebuffer(t.fbo);
       gl!.deleteTexture(t.texture);
     });
+  }
+
+  function rebuildFluidTargets(simResolution: number, dyeResolution: number) {
+    const next = createFluidTargets(simResolution, dyeResolution);
+    const previous = fluidTargets;
+    fluidTargets = next;
+    releaseTargets(previous);
   }
 
   let texelX = 0;
@@ -603,21 +635,21 @@ export function createLiquid(
     gl!.useProgram(splatProgram.program);
     gl!.uniform1i(
       splatProgram.uniforms.uTarget,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
     gl!.uniform1f(splatProgram.uniforms.uAspect, aspect);
     gl!.uniform2f(splatProgram.uniforms.uPoint, x, y);
     gl!.uniform3f(splatProgram.uniforms.uColor, dx, dy, 10);
     gl!.uniform1f(splatProgram.uniforms.uRadius, radius);
-    blit(velocity.write);
-    velocity.swap();
+    blit(fluidTargets.velocity.write);
+    fluidTargets.velocity.swap();
 
     gl!.uniform1i(
       splatProgram.uniforms.uTarget,
-      bindTexture(dye.read.texture, 0),
+      bindTexture(fluidTargets.dye.read.texture, 0),
     );
-    blit(dye.write);
-    dye.swap();
+    blit(fluidTargets.dye.write);
+    fluidTargets.dye.swap();
   }
 
   function step(delta: number) {
@@ -627,105 +659,105 @@ export function createLiquid(
     gl!.uniform2f(curlProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       curlProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
-    blit(curl);
+    blit(fluidTargets.curl);
 
     gl!.useProgram(vorticityProgram.program);
     gl!.uniform2f(vorticityProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       vorticityProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
     gl!.uniform1i(
       vorticityProgram.uniforms.uCurl,
-      bindTexture(curl.texture, 1),
+      bindTexture(fluidTargets.curl.texture, 1),
     );
     gl!.uniform1f(vorticityProgram.uniforms.uCurlStrength, config.curl);
     gl!.uniform1f(vorticityProgram.uniforms.uDt, DT);
-    blit(velocity.write);
-    velocity.swap();
+    blit(fluidTargets.velocity.write);
+    fluidTargets.velocity.swap();
 
     gl!.useProgram(divergenceProgram.program);
     gl!.uniform2f(divergenceProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       divergenceProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
-    blit(divergence);
+    blit(fluidTargets.divergence);
 
     gl!.useProgram(clearProgram.program);
     gl!.uniform1i(
       clearProgram.uniforms.uTexture,
-      bindTexture(pressure.read.texture, 0),
+      bindTexture(fluidTargets.pressure.read.texture, 0),
     );
     gl!.uniform1f(
       clearProgram.uniforms.uValue,
       Math.pow(config.pressure, delta * 60),
     );
-    blit(pressure.write);
-    pressure.swap();
+    blit(fluidTargets.pressure.write);
+    fluidTargets.pressure.swap();
 
     gl!.useProgram(pressureProgram.program);
     gl!.uniform2f(pressureProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       pressureProgram.uniforms.uDivergence,
-      bindTexture(divergence.texture, 0),
+      bindTexture(fluidTargets.divergence.texture, 0),
     );
     for (let i = 0; i < config.pressureIterations; i++) {
       gl!.uniform1i(
         pressureProgram.uniforms.uPressure,
-        bindTexture(pressure.read.texture, 1),
+        bindTexture(fluidTargets.pressure.read.texture, 1),
       );
-      blit(pressure.write);
-      pressure.swap();
+      blit(fluidTargets.pressure.write);
+      fluidTargets.pressure.swap();
     }
 
     gl!.useProgram(gradientProgram.program);
     gl!.uniform2f(gradientProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       gradientProgram.uniforms.uPressure,
-      bindTexture(pressure.read.texture, 0),
+      bindTexture(fluidTargets.pressure.read.texture, 0),
     );
     gl!.uniform1i(
       gradientProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 1),
+      bindTexture(fluidTargets.velocity.read.texture, 1),
     );
-    blit(velocity.write);
-    velocity.swap();
+    blit(fluidTargets.velocity.write);
+    fluidTargets.velocity.swap();
 
     gl!.useProgram(advectProgram.program);
     gl!.uniform2f(advectProgram.uniforms.texelSize, texelX, texelY);
     gl!.uniform1i(
       advectProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
     gl!.uniform1i(
       advectProgram.uniforms.uSource,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
     gl!.uniform1f(advectProgram.uniforms.uDt, DT);
     gl!.uniform1f(
       advectProgram.uniforms.uDissipation,
       Math.pow(config.velocityDissipation, delta * 60),
     );
-    blit(velocity.write);
-    velocity.swap();
+    blit(fluidTargets.velocity.write);
+    fluidTargets.velocity.swap();
 
     gl!.uniform1i(
       advectProgram.uniforms.uVelocity,
-      bindTexture(velocity.read.texture, 0),
+      bindTexture(fluidTargets.velocity.read.texture, 0),
     );
     gl!.uniform1i(
       advectProgram.uniforms.uSource,
-      bindTexture(dye.read.texture, 1),
+      bindTexture(fluidTargets.dye.read.texture, 1),
     );
     gl!.uniform1f(
       advectProgram.uniforms.uDissipation,
       Math.pow(config.densityDissipation, delta * 60),
     );
-    blit(dye.write);
-    dye.swap();
+    blit(fluidTargets.dye.write);
+    fluidTargets.dye.swap();
   }
 
   function render() {
@@ -737,7 +769,7 @@ export function createLiquid(
     );
     gl!.uniform1i(
       displayProgram.uniforms.uFluid,
-      bindTexture(dye.read.texture, 1),
+      bindTexture(fluidTargets.dye.read.texture, 1),
     );
     gl!.uniform3f(
       displayProgram.uniforms.uColor,
@@ -818,6 +850,10 @@ export function createLiquid(
     const rect = output.getBoundingClientRect();
     const px = event.clientX - rect.left;
     const py = event.clientY - rect.top;
+    if (px < 0 || px > rect.width || py < 0 || py > rect.height) {
+      pointers.delete(event.pointerId);
+      return;
+    }
     const previous = pointers.get(event.pointerId);
     pointers.set(event.pointerId, { x: px, y: py });
     if (!previous) return;
@@ -827,12 +863,31 @@ export function createLiquid(
     start();
   }
 
+  function onPointerDown(event: PointerEvent) {
+    if (reducedMotion) return;
+    const rect = output.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    if (x < 0 || x > rect.width || y < 0 || y > rect.height) return;
+    pointers.set(event.pointerId, { x, y });
+    queued.push([x / rect.width, 1 - y / rect.height, 1, 1]);
+    start();
+  }
+
   function onPointerLeave(event: PointerEvent) {
     pointers.delete(event.pointerId);
   }
 
-  const listenTarget = output.parentElement ?? output;
+  const listenTarget = window;
+  listenTarget.addEventListener("pointerdown", onPointerDown as EventListener, {
+    passive: true,
+  });
   listenTarget.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
+  listenTarget.addEventListener(
+    "pointerup",
+    onPointerLeave as EventListener,
+    { passive: true },
+  );
   listenTarget.addEventListener(
     "pointerleave",
     onPointerLeave as EventListener,
@@ -867,10 +922,20 @@ export function createLiquid(
         )
       )
         return;
-      const { simResolution, dyeResolution, ...rest } = next;
-      void simResolution;
-      void dyeResolution;
-      Object.assign(config, rest);
+      const simResolution = next.simResolution ?? config.simResolution;
+      const dyeResolution = next.dyeResolution ?? config.dyeResolution;
+      const resolutionChanged =
+        simResolution !== config.simResolution ||
+        dyeResolution !== config.dyeResolution;
+
+      if (resolutionChanged) {
+        rebuildFluidTargets(simResolution, dyeResolution);
+        config.simResolution = simResolution;
+        config.dyeResolution = dyeResolution;
+        updateTexelSize();
+      }
+
+      Object.assign(config, next);
       start();
     },
     resize() {
@@ -883,15 +948,23 @@ export function createLiquid(
       observer.disconnect();
       intersection.disconnect();
       motionQuery.removeEventListener("change", onMotionChange);
-      releaseAll();
+      releaseTargets(fluidTargets);
       gl!.deleteTexture(contentTexture);
       programs.forEach((program) => gl!.deleteProgram(program));
       shaders.forEach((shader) => gl!.deleteShader(shader));
       gl!.deleteBuffer(quad);
       if (htmlInCanvas) paintable.onpaint = null;
       listenTarget.removeEventListener(
+        "pointerdown",
+        onPointerDown as EventListener,
+      );
+      listenTarget.removeEventListener(
         "pointermove",
         onPointerMove as EventListener,
+      );
+      listenTarget.removeEventListener(
+        "pointerup",
+        onPointerLeave as EventListener,
       );
       listenTarget.removeEventListener(
         "pointerleave",
