@@ -44,6 +44,7 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: "/docs/components/shatter", priority: 0.8 },
   { path: "/docs/components/liquid-object", priority: 0.8 },
   { path: "/docs/components/vhs", priority: 0.8 },
+  { path: "/privacy", priority: 0.3 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 
 import { useSubscribed } from "@/components/common/use-subscribed";
@@ -263,6 +264,27 @@ export function NewsletterSignup({
         )}
       >
         {message}
+      </p>
+
+      <p
+        className={cn(
+          "mt-2.5 text-center text-xs leading-5",
+          onDark ? "text-white/50" : "text-muted-foreground",
+        )}
+      >
+        <Link
+          href="/privacy"
+          target="_blank"
+          rel="noreferrer"
+          className={cn(
+            "underline underline-offset-4 transition-colors duration-150",
+            onDark
+              ? "decoration-white/25 hover:decoration-white/60"
+              : "decoration-border hover:decoration-foreground",
+          )}
+        >
+          Privacy policy
+        </Link>
       </p>
     </div>
   );
