@@ -35,9 +35,10 @@ export function HeroReveal({
     let last = performance.now();
     let inView = true;
     let running = false;
-    const reducedMotion = window.matchMedia(
+    const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
-    ).matches;
+    );
+    let reducedMotion = reducedMotionQuery.matches;
     let hostRect = host.getBoundingClientRect();
 
     const updateHostRect = () => {
@@ -49,17 +50,36 @@ export function HeroReveal({
     window.addEventListener("resize", updateHostRect);
     window.addEventListener("scroll", updateHostRect, { passive: true });
 
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const start = () => {
+      if (reducedMotion || running || !inView || document.hidden) return;
+      running = true;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+
     const onMove = (event: PointerEvent) => {
-      if (event.isTrusted) userActive = true;
+      if (event.isTrusted) {
+        userActive = true;
+        stop();
+      }
     };
     const onLeave = (event: PointerEvent) => {
-      if (event.isTrusted) userActive = false;
+      if (event.isTrusted) {
+        userActive = false;
+        start();
+      }
     };
     host.addEventListener("pointermove", onMove, true);
     host.addEventListener("pointerleave", onLeave, true);
 
     const tick = (now: number) => {
-      if (!inView || document.hidden) {
+      if (!inView || document.hidden || reducedMotion || userActive) {
         running = false;
         return;
       }
@@ -70,7 +90,9 @@ export function HeroReveal({
         const nx =
           0.5 + 0.34 * Math.sin(t * 0.37) + 0.14 * Math.sin(t * 0.93 + 1.7);
         const ny =
-          0.5 + 0.3 * Math.sin(t * 0.53 + 0.8) + 0.14 * Math.sin(t * 1.19 + 4.1);
+          0.5 +
+          0.3 * Math.sin(t * 0.53 + 0.8) +
+          0.14 * Math.sin(t * 1.19 + 4.1);
         target.dispatchEvent(
           new PointerEvent("pointermove", {
             bubbles: true,
@@ -80,19 +102,6 @@ export function HeroReveal({
         );
       }
       raf = requestAnimationFrame(tick);
-    };
-
-    const start = () => {
-      if (reducedMotion || running || !inView || document.hidden) return;
-      running = true;
-      last = performance.now();
-      raf = requestAnimationFrame(tick);
-    };
-
-    const stop = () => {
-      if (!running) return;
-      running = false;
-      cancelAnimationFrame(raf);
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -112,7 +121,13 @@ export function HeroReveal({
         start();
       }
     };
+    const onMotionChange = () => {
+      reducedMotion = reducedMotionQuery.matches;
+      if (reducedMotion) stop();
+      else start();
+    };
     document.addEventListener("visibilitychange", onVisibilityChange);
+    reducedMotionQuery.addEventListener("change", onMotionChange);
 
     start();
 
@@ -121,6 +136,7 @@ export function HeroReveal({
       observer.disconnect();
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      reducedMotionQuery.removeEventListener("change", onMotionChange);
       window.removeEventListener("resize", updateHostRect);
       window.removeEventListener("scroll", updateHostRect);
       host.removeEventListener("pointermove", onMove, true);

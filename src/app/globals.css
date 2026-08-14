@@ -445,6 +445,10 @@ li:nth-child(3) .featured-video-card strong {
   animation-play-state: paused;
 }
 
+.marquee-track:not([data-in-view]) {
+  animation-play-state: paused;
+}
+
 .marquee-track[data-direction="reverse"] {
   animation-direction: reverse;
 }
