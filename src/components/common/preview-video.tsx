@@ -25,6 +25,7 @@ export function PreviewVideo({
     const prime = () => {
       if (primed) return;
       primed = true;
+      video.preload = "metadata";
       void video
         .play()
         .then(() => {
@@ -79,7 +80,7 @@ export function PreviewVideo({
       loop
       muted
       playsInline
-      preload="metadata"
+      preload="none"
       disablePictureInPicture
       aria-hidden="true"
       tabIndex={-1}
