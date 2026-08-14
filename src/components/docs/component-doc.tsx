@@ -52,24 +52,9 @@ export function ComponentDoc({
   return (
     <article className="mx-auto w-full max-w-3xl">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-[-0.02em]">{title}</h1>
-          <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-            {description}
-          </p>
-          {tags && tags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-border/60 px-2.5 py-0.5 text-[11.5px] text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <h1 className="min-w-0 text-3xl font-semibold tracking-[-0.02em]">
+          {title}
+        </h1>
         <CopyMenu
           title={title}
           description={description}
@@ -81,6 +66,21 @@ export function ComponentDoc({
           demoSource={demoSource}
         />
       </div>
+      <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
+        {description}
+      </p>
+      {tags && tags.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-border/60 px-2.5 py-0.5 text-[11.5px] text-muted-foreground"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       {requiresHtmlInCanvas ? <HtmlInCanvasBanner /> : null}
 

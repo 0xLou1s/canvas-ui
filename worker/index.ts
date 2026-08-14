@@ -10,6 +10,7 @@ interface Env {
   TURNSTILE_SECRET_KEY?: string;
   TURNSTILE_ENABLED?: string;
   ALLOWED_ORIGINS?: string;
+  RESEND_AUDIENCE_ID?: string;
   SUBSCRIBE_IP_LIMIT?: RateLimiter;
   SUBSCRIBE_GLOBAL_LIMIT?: RateLimiter;
 }
@@ -187,7 +188,12 @@ async function subscribe(request: Request, env: Env): Promise<Response> {
 
   let response: Response;
   try {
-    response = await fetch("https://api.resend.com/contacts", {
+    const audience = env.RESEND_AUDIENCE_ID;
+    const endpoint = audience
+      ? `https://api.resend.com/audiences/${audience}/contacts`
+      : "https://api.resend.com/contacts";
+
+    response = await fetch(endpoint, {
       method: "POST",
       headers: {
         authorization: `Bearer ${env.RESEND_API_KEY}`,
