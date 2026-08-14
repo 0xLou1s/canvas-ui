@@ -74,11 +74,13 @@ export default function PrivacyPage() {
                 The short version
               </h2>
               <p className="mt-2 text-[15px] leading-7 text-muted-foreground">
-                There are no analytics, no tracking cookies, and no advertising
-                on this site. The only personal data collected is an email
-                address, and only if you type one into the newsletter form. It
-                is never sold or shared, and you can have it deleted at any time
-                by emailing <MailLink />.
+                There are no tracking cookies, no advertising, and no analytics
+                scripts running in your browser. Cloudflare records anonymous,
+                aggregate traffic statistics from ordinary web requests. The
+                only personal data collected is an email address, and only if
+                you type one into the newsletter form. It is never sold or
+                shared, and you can have it deleted at any time by emailing{" "}
+                <MailLink />.
               </p>
             </div>
           </div>
@@ -97,15 +99,24 @@ export default function PrivacyPage() {
               the moment of the request and is not written to any database or
               logged by this site.
             </p>
+            <p>
+              <span className="text-foreground">Aggregate traffic data</span>.
+              Cloudflare, which serves this site, reports totals such as page
+              views, referring sites, and country-level location. This is
+              derived from the ordinary web requests your browser already makes.
+              Nothing is stored on your device for it, it is only ever seen as
+              totals, and it is not linked to you or to any email address.
+            </p>
           </Section>
 
           <Section title="What is not collected">
             <p>
-              No analytics or measurement scripts of any kind run on this site.
-              There are no tracking cookies, no advertising pixels, no
+              No analytics or measurement scripts of any kind run in your
+              browser. There are no tracking cookies, no advertising pixels, no
               fingerprinting, no session recording, and no profiling. Fonts are
-              served from this domain rather than a third party, and browsing
-              the docs is not recorded or associated with you.
+              served from this domain rather than a third party, and the pages
+              you visit are not tied to your identity or used to build a profile
+              of you.
             </p>
             <p>
               Your data is never sold, rented, or shared for anyone else&rsquo;s
@@ -129,8 +140,9 @@ export default function PrivacyPage() {
               <ExternalLink href="https://www.cloudflare.com/privacypolicy/">
                 Cloudflare
               </ExternalLink>{" "}
-              hosts the site and runs the form endpoint, including the Turnstile
-              anti-bot check.
+              hosts the site, runs the form endpoint including the Turnstile
+              anti-bot check, and provides the aggregate traffic statistics
+              described above.
             </p>
             <p>
               <ExternalLink href="https://resend.com/legal/privacy-policy">
