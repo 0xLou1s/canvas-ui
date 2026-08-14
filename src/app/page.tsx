@@ -9,6 +9,7 @@ import { Gallery } from "@/components/landing/gallery";
 import { Hero } from "@/components/landing/hero";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Navbar } from "@/components/landing/navbar";
+import { Newsletter } from "@/components/landing/newsletter";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -58,6 +59,7 @@ export default function Home() {
           <Frameworks />
           <Agents />
           <Faq />
+          <Newsletter />
         </div>
         <Cta />
       </main>

@@ -84,17 +84,6 @@ export function LiquidDemo({ children }: { children: ReactNode }) {
           className="min-h-full bg-background px-5 pt-24 pb-10 sm:px-8 lg:pt-16 lg:pr-8 lg:pl-72"
         >
           {children}
-          <div className="pointer-events-none fixed right-5 bottom-5 z-40 rounded-md border border-foreground/15 bg-background/85 px-3 py-2 font-mono text-xs text-foreground/75 shadow-lg backdrop-blur-sm sm:right-8">
-            <div className="font-sans font-medium text-foreground">
-              Quality: {quality}
-            </div>
-            <div>
-              Simulation: {resolution.simResolution}x{resolution.simResolution}
-            </div>
-            <div>
-              Dye: {resolution.dyeResolution}x{resolution.dyeResolution}
-            </div>
-          </div>
         </div>
       </Liquid>
 
